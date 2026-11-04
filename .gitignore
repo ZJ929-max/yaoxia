@@ -1,0 +1,7 @@
+# 签名材料绝不入公开仓库
+keystore.jks
+keystore.properties
+local.properties
+.gradle/
+build/
+app/build/
