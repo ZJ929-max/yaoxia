@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 不需要任何设备管理策略：只为拿到一个可传给 DevicePolicyManager 的 admin 组件 -->
+    <uses-policies />
+</device-admin>

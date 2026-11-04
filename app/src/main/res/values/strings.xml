@@ -1,4 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OpenSandbox</string>
+    <string name="version_format">v%1$s</string>
+
+    <string name="button_connect">① 连接并授权</string>
+    <string name="button_scopes">② 申请委派范围</string>
+    <string name="button_refresh">③ 刷新应用列表</string>
+    <string name="button_copy_diagnostics">复制诊断信息</string>
+
+    <string name="status_connecting">正在连接…</string>
+    <string name="status_connect_failed">连接失败：%1$s</string>
+    <string name="session_summary">DeviceOwner：%1$s\n服务端：%2$s\nprovider：%3$s</string>
+    <string name="status_authorized">已授权\n%1$s</string>
+    <string name="status_waiting_authorization">等待授权…\n%1$s</string>
+    <string name="status_authorization_denied">授权被拒。可到设备所有者应用的委派页面手动添加本应用。</string>
+    <string name="status_scopes_failed">读取委派范围失败：%1$s</string>
+    <string name="status_no_scopes">已授权，但还没有委派范围，点②申请。\n%1$s</string>
+    <string name="status_scopes">当前委派范围：%2$s\n%1$s</string>
+    <string name="status_requesting_scopes">正在申请委派范围…</string>
+    <string name="status_scope_request_failed">申请委派失败：%1$s</string>
+    <string name="status_scopes_updated">委派范围已更新：%1$s</string>
+    <string name="status_loading_apps">正在读取应用列表…</string>
+    <string name="status_app_count">共 %1$d 个应用（点按冻结 / 长按禁止卸载）</string>
+
+    <string name="toast_frozen">已冻结 %1$s</string>
+    <string name="toast_unfrozen">已解冻 %1$s</string>
+    <string name="toast_uninstall_blocked">已禁止卸载 %1$s</string>
+    <string name="toast_uninstall_allowed">已允许卸载 %1$s</string>
+    <string name="toast_action_failed">失败：%1$s</string>
+    <string name="toast_diagnostics_copied">诊断信息已复制</string>
+
+    <string name="channel_available">✓ 可用</string>
+    <string name="channel_unavailable">✗ 不可用</string>
+    <string name="status_no_policy_channel">没有可用的策略通道：%1$s</string>
+
+    <string name="flag_frozen">❄ </string>
+    <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

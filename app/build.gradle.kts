@@ -1,5 +1,9 @@
 import java.util.Properties
 
+val versionProperties = Properties().apply {
+    rootProject.file("version.properties").inputStream().use { load(it) }
+}
+
 plugins { id("com.android.application") }
 
 android {
@@ -10,15 +14,18 @@ android {
         applicationId = "com.opensandbox.dhizuku"
         minSdk = 28
         targetSdk = 34
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = versionProperties.getProperty("versionCode").toInt()
+        versionName = versionProperties.getProperty("versionName")
     }
 
-    buildFeatures { aidl = true }
+    buildFeatures {
+        aidl = true
+        buildConfig = true
+    }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     signingConfigs {
@@ -43,4 +50,9 @@ android {
     }
 }
 
-dependencies { implementation("io.github.iamr0s:Dhizuku-API:2.4") }
+dependencies {
+    // dhi / she 的协议客户端
+    implementation("io.github.iamr0s:Dhizuku-API:2.5.4")
+    // shi 的官方 SDK
+    implementation("dev.rikka.shizuku:api:13.0.0")
+}

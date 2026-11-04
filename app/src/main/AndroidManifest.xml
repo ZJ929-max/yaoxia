@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <!-- Dhizuku 的 API 权限（dangerous），必须声明才能被它识别为一个客户端 -->
     <uses-permission android:name="com.rosan.dhizuku.permission.API" />
+    <!-- shi（Shizuku）的客户端权限 -->
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <application
         android:allowBackup="false"
@@ -12,12 +14,31 @@
         android:theme="@android:style/Theme.DeviceDefault.Light">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".SandboxAdmin"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+        <!-- shi 的客户端接入点，官方要求原样声明 -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 </manifest>
