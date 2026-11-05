@@ -50,11 +50,16 @@ class AppState(
     var apps by mutableStateOf<List<AppUi>>(emptyList())
     var scopes by mutableStateOf<Set<String>>(emptySet())
     var busy by mutableStateOf(false)
-    var profileUserId by mutableStateOf<Int?>(prefs.getInt("user_id", -1).takeIf { it >= 0 })
-    var profileApps by mutableStateOf<List<String>>(emptyList())
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
     var shellLabel by mutableStateOf("")
+
+    private val profileFlow by lazy {
+        ProfileFlow(context, async, { shell }) { text -> status = text }
+    }
+
+    val profileUserId: Int? get() = profileFlow.userId
+    val profileApps: List<String> get() = profileFlow.packages
     var pendingLaunch by mutableStateOf<AppUi?>(null)
     var pendingSwitchBack by mutableStateOf(false)
 
@@ -397,52 +402,6 @@ class AppState(
 
     // ------------------------------------------------------------------ 隔离空间内的应用
 
-    fun refreshProfileApps() {
-        val channel =
-            shell ?: run {
-                status = context.getString(R.string.status_shell_unavailable, "")
-                return
-            }
-        val profile = ProfileApps(channel)
-
-        async.execute({
-            val userId =
-                profile
-                    .findUser(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
-                    .valueOrNull() ?: error("还没有隔离空间，先点上面的按钮建一个")
-            val installed = profile.installed(userId)
-            if (!installed.isSuccess) error(installed.errorOrNull().orEmpty())
-            Outcome.ok(ProfileSnapshot(userId, installed.valueOrNull().orEmpty().sorted()))
-        }, { outcome ->
-            val snapshot = outcome.valueOrNull()
-            if (snapshot == null) {
-                status = context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-                return@execute
-            }
-            profileUserId = snapshot.userId
-            profileApps = snapshot.packages
-            prefs.edit().putInt("user_id", snapshot.userId).apply()
-            status = context.getString(R.string.profile_apps_count, snapshot.packages.size)
-        })
-    }
-
-    fun installIntoProfile(packageName: String) {
-        val channel = shell ?: return
-        val userId = profileUserId ?: return
-        val profile = ProfileApps(channel)
-        async.execute({
-            profile.install(userId, packageName)
-        }, { outcome ->
-            status =
-                if (outcome.isSuccess) {
-                    context.getString(R.string.profile_installed, packageName, userId)
-                } else {
-                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-                }
-            refreshProfileApps()
-        })
-    }
-
     /** 点「打开」先征求同意：切用户会把本应用一起切走。 */
     fun requestLaunchInProfile(app: AppUi) {
         pendingLaunch = app
@@ -458,25 +417,6 @@ class AppState(
         pendingLaunch = null
     }
 
-    /** 从隔离空间切回主空间（0 号用户），同样"发出去不等"。 */
-    fun switchToOwner() {
-        val channel = shell ?: return
-        async.execute({
-            channel.executeDetached(
-                ShellCommands.SHELL,
-                ShellCommands.EXECUTE,
-                ShellCommands.switchUser(0),
-            )
-        }, { outcome ->
-            status =
-                if (outcome.isSuccess) {
-                    context.getString(R.string.profile_switch_back_ok)
-                } else {
-                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-                }
-        })
-    }
-
     fun requestSwitchToOwner() {
         pendingSwitchBack = true
     }
@@ -490,45 +430,15 @@ class AppState(
         pendingSwitchBack = false
     }
 
-    fun launchInProfile(packageName: String) {
-        val userId = profileUserId ?: return
-        val channel = shell ?: return
-        val profile = ProfileApps(channel)
+    fun refreshProfileApps() = profileFlow.refresh()
 
-        // am start --user 会等目标用户启动，必须"发出去就返回"
-        async.execute({
-            val component = profile.resolveComponent(userId, packageName)
-            if (component != null) {
-                profile.launch(userId, component)
-            } else {
-                profile.launchByMonkey(userId, packageName)
-            }
-        }, { outcome ->
-            status =
-                if (outcome.isSuccess) {
-                    context.getString(R.string.profile_launch_requested, packageName)
-                } else {
-                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-                }
-        })
-    }
+    fun installIntoProfile(packageName: String) = profileFlow.install(packageName)
 
-    fun removeFromProfile(packageName: String) {
-        val channel = shell ?: return
-        val userId = profileUserId ?: return
-        val profile = ProfileApps(channel)
-        async.execute({
-            profile.remove(userId, packageName)
-        }, { outcome ->
-            status =
-                if (outcome.isSuccess) {
-                    context.getString(R.string.profile_removed, packageName, userId)
-                } else {
-                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-                }
-            refreshProfileApps()
-        })
-    }
+    fun removeFromProfile(packageName: String) = profileFlow.remove(packageName)
+
+    fun launchInProfile(packageName: String) = profileFlow.launch(packageName)
+
+    fun switchToOwner() = profileFlow.switchBack()
 
     fun shutdown() = async.shutdown()
 
