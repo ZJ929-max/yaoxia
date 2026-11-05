@@ -325,6 +325,19 @@ class AppState(private val context: Context) {
         })
     }
 
+    /** 诊断报告：通道、会话、状态、版本，一次性复制。 */
+    fun diagnosticsReport(): String = buildString {
+        appendLine("version=${com.opensandbox.dhizuku.BuildConfig.VERSION_NAME}")
+        appendLine(session)
+        channels.forEach { appendLine("${it.name} available=${it.available}") }
+        appendLine(status)
+        appendLine("log=${logFile()?.absolutePath ?: "无"}")
+    }
+
+    fun logFile(): java.io.File? = runCatching {
+        java.io.File(context.filesDir, "crash-last.txt").takeIf { it.exists() }
+    }.getOrNull()
+
     fun shutdown() = async.shutdown()
 
     // ------------------------------------------------------------------ 内部

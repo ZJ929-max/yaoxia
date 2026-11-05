@@ -30,10 +30,21 @@ class ShellProfileProvisioner(
             }
 
             val usersBefore = runCatching { run(ShellCommands.LIST_USERS) }.getOrDefault("")
+
+            // 已有设备所有者（dhi/she）时，系统常会拒绝建"工作资料"；
+            // 退一步建普通独立用户，隔离效果一样，只是系统设置里不显示成工作资料。
             val created = try {
                 run(ShellCommands.createManagedProfile(profileName))
-            } catch (throwable: Throwable) {
-                error("${throwable.message}\n当前用户列表：\n$usersBefore")
+            } catch (managedFailure: Throwable) {
+                try {
+                    run(ShellCommands.createPlainUser(profileName))
+                } catch (plainFailure: Throwable) {
+                    error(
+                        "工作资料失败：${managedFailure.message}\n" +
+                        "普通用户也失败：${plainFailure.message}\n" +
+                        "当前用户列表：\n$usersBefore"
+                    )
+                }
             }
             val userId = parseCreatedUserId(created)
                 ?: error("无法从输出中解析新用户 id：$created")

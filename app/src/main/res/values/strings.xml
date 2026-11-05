@@ -67,6 +67,9 @@
     <string name="status_profile_system_flow">已拉起系统配置界面，按提示继续…</string>
     <string name="status_profile_system_ok">工作资料已创建，本应用已成为其管理者</string>
 
+    <string name="log_path">日志文件：%1$s</string>
+    <string name="log_none">暂无（还没有崩溃记录）</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

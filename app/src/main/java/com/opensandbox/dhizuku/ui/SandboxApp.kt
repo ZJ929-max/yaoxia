@@ -246,10 +246,8 @@ private fun ProfileScreen(state: AppState) {
             stringResource(R.string.profile_explain),
             style = MaterialTheme.typography.bodyMedium
         )
-        Button(onClick = state::provisionManagedProfile) {
-            Text(stringResource(R.string.button_provision_system))
-        }
-        OutlinedButton(onClick = state::createProfile) {
+        // 系统配置流程在"已有设备所有者"时必然失败（dhi 占着），所以只保留 shell 路线
+        Button(onClick = state::createProfile) {
             Text(stringResource(R.string.button_create_profile))
         }
         Card(
@@ -308,6 +306,27 @@ private fun SettingsScreen(state: AppState) {
         }
 
         Divider()
+
+        val context = LocalContext.current
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = {
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                    as android.content.ClipboardManager
+                clipboard.setPrimaryClip(
+                    android.content.ClipData.newPlainText("diagnostics", state.diagnosticsReport())
+                )
+            }) { Text(stringResource(R.string.button_copy_diagnostics)) }
+        }
+
+        Text(
+            stringResource(
+                R.string.log_path,
+                state.logFile()?.absolutePath ?: stringResource(R.string.log_none)
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         Text(
             stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
