@@ -2,6 +2,7 @@ package com.opensandbox.dhizuku.platform
 
 import android.content.Context
 import com.opensandbox.dhizuku.channels.DhizukuPolicyChannel
+import com.opensandbox.dhizuku.channels.SheveryShellChannel
 import com.opensandbox.dhizuku.channels.ShizukuShellChannel
 import com.opensandbox.dhizuku.delegation.DelegationScopes
 import com.opensandbox.dhizuku.delegation.DhizukuProtocol
@@ -20,6 +21,7 @@ object ProviderRegistry {
     fun providers(context: Context): List<CapabilityProvider> = listOf(
         DhizukuPolicyChannel(context, ProviderId.SHE, PACKAGE_SHE, DelegationScopes.ALL),
         DhizukuPolicyChannel(context, ProviderId.DHI, DhizukuProtocol.OFFICIAL_PACKAGE, DelegationScopes.ALL),
+        SheveryShellChannel(context),
         ShizukuShellChannel(context)
     )
 }

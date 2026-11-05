@@ -7,6 +7,8 @@
     <uses-permission android:name="com.rosan.dhizuku.permission.API" />
     <!-- shi（Shizuku）的客户端权限 -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <!-- she 自己的 API 权限（与 shi 的 V23 是两套） -->
+    <uses-permission android:name="com.hamondev.shevery.permission.PRIVILEGED_API" />
 
     <application
         android:allowBackup="false"

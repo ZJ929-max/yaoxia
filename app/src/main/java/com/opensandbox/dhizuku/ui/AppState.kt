@@ -326,8 +326,20 @@ class AppState(private val context: Context) {
     }
 
     /** 诊断报告：通道、会话、状态、版本，一次性复制。 */
+    private val managers = listOf(
+        "com.hamondev.shevery" to "she",
+        "moe.shizuku.privileged.api" to "shi",
+        "com.rosan.dhizuku" to "dhi",
+        "frb.axeron.manager" to "ax"
+    )
+
+    fun installedManagers(): List<String> = managers.mapNotNull { (pkg, label) ->
+        if (runCatching { context.packageManager.getPackageInfo(pkg, 0) }.isSuccess) label else null
+    }
+
     fun diagnosticsReport(): String = buildString {
         appendLine("version=${com.opensandbox.dhizuku.BuildConfig.VERSION_NAME}")
+        appendLine("installed=${installedManagers().joinToString(",")}")
         appendLine(session)
         channels.forEach { appendLine("${it.name} available=${it.available}") }
         appendLine(status)

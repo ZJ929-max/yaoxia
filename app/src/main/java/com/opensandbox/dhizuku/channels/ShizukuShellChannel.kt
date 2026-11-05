@@ -34,42 +34,8 @@ class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
         Shizuku.requestPermission(PERMISSION_REQUEST_CODE)
     }
 
-    override fun execute(vararg command: String): Outcome<String> = Outcome.catching {
-        val process = Shizuku.newProcess(command, null, null)
-
-        val stdout = ByteArrayOutputStream()
-        val stderr = ByteArrayOutputStream()
-
-        val stderrReader = Thread {
-            runCatching { process.errorStream.use { it.copyTo(stderr) } }
-        }.apply { isDaemon = true; start() }
-
-        // 用"看门狗 + 阻塞 waitFor"：不要用 exitValue()，
-        // Shizuku 的远程进程在未真正退出时会抛 "process hasn't exited"。
-        val finished = AtomicBoolean(false)
-        val watchdog = Thread {
-            runCatching {
-                Thread.sleep(COMMAND_TIMEOUT_MILLIS)
-                if (!finished.get()) process.destroyForcibly()
-            }
-        }.apply { isDaemon = true; start() }
-
-        process.inputStream.use { it.copyTo(stdout) }
-        val exitCode = process.waitFor()
-
-        finished.set(true)
-        watchdog.interrupt()
-        stderrReader.join(1000)
-
-        val out = stdout.toString(Charsets.UTF_8.name()).trim()
-        val err = stderr.toString(Charsets.UTF_8.name()).trim()
-
-        check(exitCode == 0) {
-            val detail = err.ifEmpty { out }
-            "exit $exitCode" + if (detail.isEmpty()) "" else ": $detail"
-        }
-        out
-    }
+    override fun execute(vararg command: String): Outcome<String> =
+        ShizukuProcessRunner.run(command)
 
     private fun installed(): Boolean = runCatching {
         appContext.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
