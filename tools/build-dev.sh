@@ -17,6 +17,6 @@ export ANDROID_HOME="${ANDROID_HOME:-/workspace/.toolchain/android-sdk}"
 ./gradlew --no-daemon assembleRelease
 
 mkdir -p ../builds
-cp app/build/outputs/apk/release/app-release.apk "../builds/Yaohu-${NAME}.apk"
-cp app/build/outputs/apk/release/app-release.apk ../builds/Yaohu-dev.apk
-echo "已输出：builds/Yaohu-${NAME}.apk（versionCode 恒为 1）"
+cp app/build/outputs/apk/release/app-release.apk "../builds/Yaoxia-${NAME}.apk"
+cp app/build/outputs/apk/release/app-release.apk ../builds/Yaoxia-dev.apk
+echo "已输出：builds/Yaoxia-${NAME}.apk（versionCode 恒为 1）"

@@ -7,7 +7,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
 import top.yukonga.miuix.kmp.basic.Switch as MiuixSwitch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -34,10 +37,16 @@ fun SkinButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val sized = modifier.height(48.dp)
     if (LocalSkin.current == Skin.MIUI) {
-        MiuixButton(onClick = onClick, enabled = enabled, modifier = modifier) { content() }
+        MiuixButton(onClick = onClick, enabled = enabled, modifier = sized) { content() }
     } else {
-        Button(onClick = onClick, enabled = enabled, modifier = modifier) { content() }
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = sized,
+            contentPadding = PaddingValues(horizontal = 20.dp)
+        ) { content() }
     }
 }
 
@@ -48,10 +57,16 @@ fun SkinOutlinedButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val sized = modifier.height(48.dp)
     if (LocalSkin.current == Skin.MIUI) {
-        MiuixButton(onClick = onClick, enabled = enabled, modifier = modifier) { content() }
+        MiuixButton(onClick = onClick, enabled = enabled, modifier = sized) { content() }
     } else {
-        OutlinedButton(onClick = onClick, enabled = enabled, modifier = modifier) { content() }
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = sized,
+            contentPadding = PaddingValues(horizontal = 20.dp)
+        ) { content() }
     }
 }
 
