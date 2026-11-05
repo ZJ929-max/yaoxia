@@ -37,6 +37,8 @@ class AppState(private val context: Context) {
     private val catalog = AppCatalog()
     private val frozenStore = FrozenStore(context)
 
+    private val prefs = context.getSharedPreferences("profile_state", Context.MODE_PRIVATE)
+
     private var delegation: DelegationService? = null
     private var control: AppControl? = null
     private var policyChannels: List<PolicyChannel> = emptyList()
@@ -48,11 +50,13 @@ class AppState(private val context: Context) {
     var apps by mutableStateOf<List<AppUi>>(emptyList())
     var scopes by mutableStateOf<Set<String>>(emptySet())
     var busy by mutableStateOf(false)
-    var profileUserId by mutableStateOf<Int?>(null)
+    var profileUserId by mutableStateOf<Int?>(prefs.getInt("user_id", -1).takeIf { it >= 0 })
     var profileApps by mutableStateOf<List<String>>(emptyList())
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
     var shellLabel by mutableStateOf("")
+    var pendingLaunch by mutableStateOf<AppUi?>(null)
+    var pendingSwitchBack by mutableStateOf(false)
 
     var busyPackages by mutableStateOf<Set<String>>(emptySet())
 
@@ -413,6 +417,7 @@ class AppState(private val context: Context) {
             }
             profileUserId = snapshot.userId
             profileApps = snapshot.packages
+            prefs.edit().putInt("user_id", snapshot.userId).apply()
             status = context.getString(R.string.profile_apps_count, snapshot.packages.size)
         })
     }
@@ -432,6 +437,34 @@ class AppState(private val context: Context) {
         })
     }
 
+    /** 点「打开」先征求同意：切用户会把本应用一起切走。 */
+    fun requestLaunchInProfile(app: AppUi) {
+        pendingLaunch = app
+    }
+
+    fun confirmPendingLaunch() {
+        val app = pendingLaunch ?: return
+        pendingLaunch = null
+        launchInProfile(app.packageName)
+    }
+
+    fun cancelPendingLaunch() {
+        pendingLaunch = null
+    }
+
+    fun requestSwitchToOwner() {
+        pendingSwitchBack = true
+    }
+
+    fun confirmSwitchToOwner() {
+        pendingSwitchBack = false
+        switchToOwner()
+    }
+
+    fun cancelSwitchToOwner() {
+        pendingSwitchBack = false
+    }
+
     fun launchInProfile(packageName: String) {
         val userId = profileUserId ?: return
         val channel = shell ?: return
@@ -439,18 +472,16 @@ class AppState(private val context: Context) {
         // am start --user 会等目标用户启动，必须"发出去就返回"，否则工作线程被占死。
         async.execute({
             val component = resolveComponent(channel, userId, packageName)
-            if (component != null) {
-                channel.executeDetached("sh", "-c", "am start --user $userId -n $component")
+            val command = if (component != null) {
+                ShellCommands.launchAndSwitch(userId, component)
             } else {
-                // 解析不到入口（有些应用在副用户里 launcher 被禁用）→ 用 monkey 走 LAUNCHER 意图
-                channel.executeDetached(
-                    "sh", "-c",
-                    "monkey -p $packageName -c android.intent.category.LAUNCHER --user $userId 1"
-                )
+                // 解析不到入口（有些应用在副用户里 launcher 被禁用）→ monkey 走 LAUNCHER 意图
+                ShellCommands.launchLauncherAndSwitch(userId, packageName)
             }
+            channel.executeDetached("sh", "-c", command)
         }, { outcome ->
             status = if (outcome.isSuccess) {
-                context.getString(R.string.profile_launched, packageName)
+                context.getString(R.string.profile_launch_requested, packageName)
             } else {
                 context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
             }

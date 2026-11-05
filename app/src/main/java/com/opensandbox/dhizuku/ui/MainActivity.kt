@@ -36,6 +36,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 从别的用户切回来时，进程可能被回收/状态过期，这里重新对一次
+        state.refreshProfileApps()
+    }
+
     override fun onDestroy() {
         state.shutdown()
         super.onDestroy()

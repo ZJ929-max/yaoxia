@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Card
@@ -104,6 +105,50 @@ fun SandboxApp(state: AppState) {
         Icons.Filled.Lock,
         Icons.Filled.Settings
     )
+
+    state.pendingLaunch?.let { app ->
+        AlertDialog(
+            onDismissRequest = state::cancelPendingLaunch,
+            title = { Text(stringResource(R.string.dialog_launch_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.dialog_launch_message,
+                        app.label,
+                        state.profileUserId ?: 0
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = state::confirmPendingLaunch) {
+                    Text(stringResource(R.string.dialog_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = state::cancelPendingLaunch) {
+                    Text(stringResource(R.string.dialog_cancel))
+                }
+            }
+        )
+    }
+
+    if (state.pendingSwitchBack) {
+        AlertDialog(
+            onDismissRequest = state::cancelSwitchToOwner,
+            title = { Text(stringResource(R.string.dialog_switch_title)) },
+            text = { Text(stringResource(R.string.dialog_switch_message)) },
+            confirmButton = {
+                TextButton(onClick = state::confirmSwitchToOwner) {
+                    Text(stringResource(R.string.dialog_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = state::cancelSwitchToOwner) {
+                    Text(stringResource(R.string.dialog_cancel))
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text(titles[tab]) }) },
@@ -334,7 +379,7 @@ private fun ProfileScreen(state: AppState) {
                             )
                         }
                         if (installed) {
-                            TextButton(onClick = { state.launchInProfile(app.packageName) }) {
+                            TextButton(onClick = { state.requestLaunchInProfile(app) }) {
                                 Text(stringResource(R.string.profile_open))
                             }
                             TextButton(onClick = { state.removeFromProfile(app.packageName) }) {

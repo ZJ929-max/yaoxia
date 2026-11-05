@@ -32,4 +32,15 @@ object ShellCommands {
         "am start --user $userId -n $component"
 
     fun switchUser(userId: Int): String = "am switch-user $userId"
+
+    /**
+     * 在指定用户里启动界面，并把前台真正切过去。
+     * 只发 am start --user 不会切前台，用户会以为没启动。
+     */
+    fun launchAndSwitch(userId: Int, component: String): String =
+        "am start-user $userId; am switch-user $userId; am start --user $userId -n $component"
+
+    fun launchLauncherAndSwitch(userId: Int, packageName: String): String =
+        "am start-user $userId; am switch-user $userId; " +
+            "monkey -p $packageName -c android.intent.category.LAUNCHER --user $userId 1"
 }

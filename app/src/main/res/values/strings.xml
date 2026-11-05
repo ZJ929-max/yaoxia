@@ -99,6 +99,16 @@
     <string name="profile_switch_back">切回主空间</string>
     <string name="profile_switch_back_ok">已请求切回主空间</string>
 
+    <string name="profile_launch_requested">已请求在隔离空间启动 %1$s（系统会切换用户，本应用会被挂起）</string>
+    <string name="dialog_launch_title">切换到隔离空间？</string>
+    <string name="dialog_launch_message">打开 %1$s 会把前台切到 user %2$d，本应用与当前会话会一起被挂起。
+
+想回来时，重新打开本应用并点「切回主空间」。</string>
+    <string name="dialog_switch_title">切回主空间？</string>
+    <string name="dialog_switch_message">会把前台切回 0 号用户（主空间）。</string>
+    <string name="dialog_confirm">继续</string>
+    <string name="dialog_cancel">取消</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>
