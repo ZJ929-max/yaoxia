@@ -9,5 +9,5 @@ enum class Capability {
     SHELL,
 
     /** 向设备所有者申请委派授权 */
-    DELEGATION
+    DELEGATION,
 }

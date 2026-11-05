@@ -32,17 +32,19 @@ private val LocalBackdrop = staticCompositionLocalOf<Backdrop?> { null }
  */
 @Composable
 fun SandboxSurface(content: @Composable () -> Unit) {
-    val gradient = Brush.linearGradient(
-        listOf(
-            Color(0xFF6D5BFF),
-            Color(0xFF2BB0FF),
-            Color(0xFF00D4B8)
+    val gradient =
+        Brush.linearGradient(
+            listOf(
+                Color(0xFF6D5BFF),
+                Color(0xFF2BB0FF),
+                Color(0xFF00D4B8),
+            ),
         )
-    )
 
-    val backdrop = rememberCanvasBackdrop {
-        drawRect(brush = gradient)
-    }
+    val backdrop =
+        rememberCanvasBackdrop {
+            drawRect(brush = gradient)
+        }
 
     Box(Modifier.fillMaxSize().background(gradient)) {
         CompositionLocalProvider(LocalBackdrop provides backdrop, content = content)
@@ -56,7 +58,7 @@ fun SandboxSurface(content: @Composable () -> Unit) {
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val enabled = LocalGlassEnabled.current
     val backdrop = LocalBackdrop.current
@@ -70,8 +72,8 @@ fun GlassCard(
                     vibrancy()
                     blur(6.dp.toPx())
                     lens(16.dp.toPx(), 32.dp.toPx())
-                }
-            )
+                },
+            ),
         ) {
             Column(Modifier.padding(16.dp), content = content)
         }

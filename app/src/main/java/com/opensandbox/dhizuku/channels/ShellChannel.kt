@@ -8,7 +8,6 @@ import com.opensandbox.dhizuku.platform.CapabilityProvider
  * 都只能经这条通道完成（需要 shell 身份，普通应用和 Device Owner 都做不到）。
  */
 interface ShellChannel : CapabilityProvider {
-
     fun execute(vararg command: String): Outcome<String>
 
     /** 不等待结果，避免长命令把工作线程占死。 */

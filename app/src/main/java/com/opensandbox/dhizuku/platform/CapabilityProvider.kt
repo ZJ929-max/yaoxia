@@ -5,7 +5,6 @@ import com.opensandbox.dhizuku.core.Outcome
 
 /** 一切能力提供方的共同契约。 */
 interface CapabilityProvider {
-
     val id: ProviderId
 
     val capabilities: Set<Capability>

@@ -18,8 +18,10 @@ import java.util.EnumSet
  * 关键点：不同版本 she 的常量名/授权名可能变，所以这里**不写死常量**，
  * 而是枚举候选授权名 + 遍历返回 Bundle 里的所有 Binder，谁活下来就用谁。
  */
-class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
-
+class SheveryShellChannel(
+    context: Context,
+) : CapabilityProvider,
+    ShellChannel {
     private val appContext: Context = context.applicationContext
 
     override val id: ProviderId = ProviderId.SHE
@@ -28,15 +30,17 @@ class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
 
     override fun describe(): String = "she · $MANAGER_PACKAGE (shell)"
 
-    override fun isAvailable(context: Context): Outcome<Boolean> = Outcome.catching {
-        installed() && ensureBinderInjected()
-    }
+    override fun isAvailable(context: Context): Outcome<Boolean> =
+        Outcome.catching {
+            installed() && ensureBinderInjected()
+        }
 
-    override fun requestPermission(): Outcome<Unit> = Outcome.catching {
-        check(installed()) { "she 未安装" }
-        // 权限是普通权限，装包即授予；这里只触发一次活体检测
-        check(ensureBinderInjected()) { "未能从 she 取得 shell binder" }
-    }
+    override fun requestPermission(): Outcome<Unit> =
+        Outcome.catching {
+            check(installed()) { "she 未安装" }
+            // 权限是普通权限，装包即授予；这里只触发一次活体检测
+            check(ensureBinderInjected()) { "未能从 she 取得 shell binder" }
+        }
 
     override fun executeDetached(vararg command: String): Outcome<Unit> {
         if (!ensureBinderInjected()) return Outcome.fail("she 的 shell binder 不可用")
@@ -52,8 +56,7 @@ class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
 
     // ------------------------------------------------------------------ 内部
 
-    private fun installed(): Boolean =
-        runCatching { appContext.packageManager.getPackageInfo(MANAGER_PACKAGE, 0) }.isSuccess
+    private fun installed(): Boolean = runCatching { appContext.packageManager.getPackageInfo(MANAGER_PACKAGE, 0) }.isSuccess
 
     private var injected = false
 
@@ -68,14 +71,15 @@ class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
 
     private fun obtainBinder(): IBinder? {
         for (authority in candidateAuthorities()) {
-            val bundle = runCatching {
-                appContext.contentResolver.call(
-                    Uri.parse("content://$authority"),
-                    METHOD_REQUEST_BINDER,
-                    null,
-                    Bundle()
-                )
-            }.getOrNull() ?: continue
+            val bundle =
+                runCatching {
+                    appContext.contentResolver.call(
+                        Uri.parse("content://$authority"),
+                        METHOD_REQUEST_BINDER,
+                        null,
+                        Bundle(),
+                    )
+                }.getOrNull() ?: continue
 
             runCatching { bundle.classLoader = javaClass.classLoader }
 
@@ -97,18 +101,20 @@ class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
         }.getOrNull()?.let { return it }
 
         return runCatching {
-            value.javaClass.getDeclaredField("binder")
+            value.javaClass
+                .getDeclaredField("binder")
                 .apply { isAccessible = true }
                 .get(value) as? IBinder
         }.getOrNull()
     }
 
-    private fun candidateAuthorities(): List<String> = listOf(
-        "$MANAGER_PACKAGE.shevery",
-        "$MANAGER_PACKAGE.shizuku",
-        "$MANAGER_PACKAGE.connector",
-        "$MANAGER_PACKAGE.server"
-    )
+    private fun candidateAuthorities(): List<String> =
+        listOf(
+            "$MANAGER_PACKAGE.shevery",
+            "$MANAGER_PACKAGE.shizuku",
+            "$MANAGER_PACKAGE.connector",
+            "$MANAGER_PACKAGE.server",
+        )
 
     private companion object {
         const val MANAGER_PACKAGE = "com.hamondev.shevery"

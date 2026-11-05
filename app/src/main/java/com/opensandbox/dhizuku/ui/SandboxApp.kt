@@ -19,20 +19,20 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -57,33 +57,43 @@ import com.opensandbox.dhizuku.R
 
 /** 主题：只换配色，布局不变——所以"外观"和"玻璃"是两个独立开关。 */
 @Composable
-fun SandboxTheme(skin: Skin, glassEnabled: Boolean, content: @Composable () -> Unit) {
+fun SandboxTheme(
+    skin: Skin,
+    glassEnabled: Boolean,
+    content: @Composable () -> Unit,
+) {
     val dark = isSystemInDarkTheme()
     val base = if (dark) darkColorScheme() else lightColorScheme()
 
-    val colors = when (skin) {
-        Skin.MATERIAL -> base
-        Skin.MIUI -> if (dark) {
-            base.copy(
-                primary = Color(0xFF9EC0FF),
-                primaryContainer = Color(0xFF00306B),
-                onPrimaryContainer = Color(0xFFDCE8FF)
-            )
-        } else {
-            base.copy(
-                primary = Color(0xFF3482FF),
-                primaryContainer = Color(0xFFDCE8FF),
-                onPrimaryContainer = Color(0xFF00174A)
-            )
+    val colors =
+        when (skin) {
+            Skin.MATERIAL -> {
+                base
+            }
+
+            Skin.MIUI -> {
+                if (dark) {
+                    base.copy(
+                        primary = Color(0xFF9EC0FF),
+                        primaryContainer = Color(0xFF00306B),
+                        onPrimaryContainer = Color(0xFFDCE8FF),
+                    )
+                } else {
+                    base.copy(
+                        primary = Color(0xFF3482FF),
+                        primaryContainer = Color(0xFFDCE8FF),
+                        onPrimaryContainer = Color(0xFF00174A),
+                    )
+                }
+            }
         }
-    }
 
     MaterialTheme(colorScheme = colors) {
         ProvideSkin(skin) {
             CompositionLocalProvider(
                 LocalGlassEnabled provides glassEnabled,
                 LocalSkin provides skin,
-                content = content
+                content = content,
             )
         }
     }
@@ -93,19 +103,21 @@ fun SandboxTheme(skin: Skin, glassEnabled: Boolean, content: @Composable () -> U
 @Composable
 fun SandboxApp(state: AppState) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    val titles = listOf(
-        stringResource(R.string.tab_status),
-        stringResource(R.string.tab_apps),
-        stringResource(R.string.tab_profile),
-        stringResource(R.string.tab_settings)
-    )
+    val titles =
+        listOf(
+            stringResource(R.string.tab_status),
+            stringResource(R.string.tab_apps),
+            stringResource(R.string.tab_profile),
+            stringResource(R.string.tab_settings),
+        )
 
-    val icons = listOf(
-        Icons.Filled.Home,
-        Icons.Filled.List,
-        Icons.Filled.Lock,
-        Icons.Filled.Settings
-    )
+    val icons =
+        listOf(
+            Icons.Filled.Home,
+            Icons.Filled.List,
+            Icons.Filled.Lock,
+            Icons.Filled.Settings,
+        )
 
     state.pendingLaunch?.let { app ->
         AlertDialog(
@@ -116,8 +128,8 @@ fun SandboxApp(state: AppState) {
                     stringResource(
                         R.string.dialog_launch_message,
                         app.label,
-                        state.profileUserId ?: 0
-                    )
+                        state.profileUserId ?: 0,
+                    ),
                 )
             },
             confirmButton = {
@@ -129,7 +141,7 @@ fun SandboxApp(state: AppState) {
                 TextButton(onClick = state::cancelPendingLaunch) {
                     Text(stringResource(R.string.dialog_cancel))
                 }
-            }
+            },
         )
     }
 
@@ -147,7 +159,7 @@ fun SandboxApp(state: AppState) {
                 TextButton(onClick = state::cancelSwitchToOwner) {
                     Text(stringResource(R.string.dialog_cancel))
                 }
-            }
+            },
         )
     }
 
@@ -160,11 +172,11 @@ fun SandboxApp(state: AppState) {
                         selected = tab == index,
                         onClick = { tab = index },
                         icon = { Icon(icons[index], contentDescription = title) },
-                        label = { Text(title) }
+                        label = { Text(title) },
                     )
                 }
             }
-        }
+        },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
@@ -183,7 +195,7 @@ fun SandboxApp(state: AppState) {
 private fun StatusScreen(state: AppState) {
     LazyColumn(
         Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             GlassCard(Modifier.fillMaxWidth()) {
@@ -193,7 +205,7 @@ private fun StatusScreen(state: AppState) {
                         Text(
                             state.session,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -209,12 +221,19 @@ private fun StatusScreen(state: AppState) {
                             Text(channel.name, style = MaterialTheme.typography.bodySmall)
                             Text(
                                 stringResource(
-                                    if (channel.available) R.string.channel_available
-                                    else R.string.channel_unavailable
+                                    if (channel.available) {
+                                        R.string.channel_available
+                                    } else {
+                                        R.string.channel_unavailable
+                                    },
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (channel.available) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.error
+                                color =
+                                    if (channel.available) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    },
                             )
                         }
                     }
@@ -240,20 +259,21 @@ private fun StatusScreen(state: AppState) {
 @Composable
 private fun AppsScreen(state: AppState) {
     var query by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
-    val visible = state.apps.filter {
-        query.isBlank() || it.label.contains(query, ignoreCase = true) ||
-            it.packageName.contains(query, ignoreCase = true)
-    }
+    val visible =
+        state.apps.filter {
+            query.isBlank() || it.label.contains(query, ignoreCase = true) ||
+                it.packageName.contains(query, ignoreCase = true)
+        }
 
     Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 stringResource(R.string.apps_count, visible.size),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
             )
             TextButton(onClick = state::refreshApps) {
                 Text(stringResource(R.string.button_refresh))
@@ -266,14 +286,14 @@ private fun AppsScreen(state: AppState) {
             singleLine = true,
             placeholder = { Text(stringResource(R.string.apps_search)) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         )
 
         if (visible.isEmpty()) {
             Text(
                 stringResource(R.string.apps_empty),
                 Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
             return@Column
         }
@@ -283,28 +303,32 @@ private fun AppsScreen(state: AppState) {
                 Column(Modifier.fillMaxWidth()) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(app.label, fontWeight = FontWeight.Medium)
                             Text(
                                 app.packageName,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         IconButton(onClick = { state.toggleUninstallBlock(app) }) {
                             Icon(
                                 Icons.Filled.Lock,
                                 contentDescription = stringResource(R.string.apps_uninstall_block),
-                                tint = if (app.uninstallBlocked) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.outline
+                                tint =
+                                    if (app.uninstallBlocked) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.outline
+                                    },
                             )
                         }
                         SkinSwitch(
                             checked = app.frozen,
                             enabled = app.packageName !in state.busyPackages,
-                            onCheckedChange = { target -> state.setFrozen(app, target) }
+                            onCheckedChange = { target -> state.setFrozen(app, target) },
                         )
                     }
                     Divider()
@@ -323,12 +347,12 @@ private fun ProfileScreen(state: AppState) {
             Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleMedium)
             Text(
                 stringResource(R.string.profile_explain),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
             )
             Text(
                 stringResource(R.string.profile_kind_note),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SkinButton(onClick = state::createProfile) {
@@ -340,20 +364,21 @@ private fun ProfileScreen(state: AppState) {
             }
             SkinOutlinedButton(
                 onClick = state::switchToOwner,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.profile_switch_back))
             }
             Card(
                 Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
             ) {
                 Text(
                     state.status,
                     Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
@@ -362,14 +387,14 @@ private fun ProfileScreen(state: AppState) {
 
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             listOf(R.string.filter_all, R.string.filter_installed, R.string.filter_not_installed)
                 .forEachIndexed { index, res ->
                     FilterChip(
                         selected = filter == index,
                         onClick = { filter = index },
-                        label = { Text(stringResource(res)) }
+                        label = { Text(stringResource(res)) },
                     )
                 }
         }
@@ -378,7 +403,7 @@ private fun ProfileScreen(state: AppState) {
             Text(
                 stringResource(R.string.profile_none),
                 Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
             return@Column
         }
@@ -393,21 +418,24 @@ private fun ProfileScreen(state: AppState) {
                         else -> true
                     }
                 },
-                key = { it.packageName }
+                key = { it.packageName },
             ) { app ->
                 val installed = app.packageName in state.profileApps
                 Column {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(app.label, fontWeight = FontWeight.Medium)
                             Text(
-                                if (installed) stringResource(R.string.profile_state_installed)
-                                else stringResource(R.string.profile_state_absent),
+                                if (installed) {
+                                    stringResource(R.string.profile_state_installed)
+                                } else {
+                                    stringResource(R.string.profile_state_absent)
+                                },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         if (installed) {
@@ -436,18 +464,18 @@ private fun ProfileScreen(state: AppState) {
 private fun SettingsScreen(state: AppState) {
     Column(
         Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(stringResource(R.string.settings_appearance), style = MaterialTheme.typography.titleSmall)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = { state.skin = Skin.MATERIAL },
-                enabled = state.skin != Skin.MATERIAL
+                enabled = state.skin != Skin.MATERIAL,
             ) { Text(stringResource(R.string.appearance_material)) }
 
             OutlinedButton(
                 onClick = { state.skin = Skin.MIUI },
-                enabled = state.skin != Skin.MIUI
+                enabled = state.skin != Skin.MIUI,
             ) { Text(stringResource(R.string.appearance_miui)) }
         }
 
@@ -456,19 +484,19 @@ private fun SettingsScreen(state: AppState) {
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.settings_glass), style = MaterialTheme.typography.titleSmall)
                 Text(
                     stringResource(R.string.settings_glass_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             SkinSwitch(
                 checked = state.glassEnabled,
-                onCheckedChange = { state.glassEnabled = it }
+                onCheckedChange = { state.glassEnabled = it },
             )
         }
 
@@ -478,10 +506,11 @@ private fun SettingsScreen(state: AppState) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = {
-                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                    as android.content.ClipboardManager
+                val clipboard =
+                    context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                        as android.content.ClipboardManager
                 clipboard.setPrimaryClip(
-                    android.content.ClipData.newPlainText("diagnostics", state.diagnosticsReport())
+                    android.content.ClipData.newPlainText("diagnostics", state.diagnosticsReport()),
                 )
             }) { Text(stringResource(R.string.button_copy_diagnostics)) }
         }
@@ -489,37 +518,37 @@ private fun SettingsScreen(state: AppState) {
         Text(
             stringResource(R.string.settings_ax_hint),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(
             stringResource(
                 R.string.log_path,
-                state.logFile()?.absolutePath ?: stringResource(R.string.log_none)
+                state.logFile()?.absolutePath ?: stringResource(R.string.log_none),
             ),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(
             stringResource(R.string.settings_about),
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
         )
         Text(
             stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
         Text(
             stringResource(R.string.about_package, context.packageName),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
         Text(
             stringResource(R.string.about_managers, state.installedManagers().joinToString(", ")),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
         Text(
             stringResource(R.string.about_shell, state.shellLabel.ifEmpty { "未解析" }),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }

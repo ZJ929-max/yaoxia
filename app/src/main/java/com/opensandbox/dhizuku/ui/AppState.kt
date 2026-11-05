@@ -17,11 +17,10 @@ import com.opensandbox.dhizuku.delegation.DelegationService
 import com.opensandbox.dhizuku.platform.CapabilityProvider
 import com.opensandbox.dhizuku.platform.CapabilityRouter
 import com.opensandbox.dhizuku.platform.ProviderRegistry
+import com.opensandbox.dhizuku.provision.DhizukuProfileProvisioner
 import com.opensandbox.dhizuku.provision.ProfileApps
 import com.opensandbox.dhizuku.provision.ShellCommands
-import com.opensandbox.dhizuku.provision.DhizukuProfileProvisioner
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
-import com.opensandbox.dhizuku.provision.SystemProfileProvisioner
 
 /** 外观预设，只影响配色，不影响布局。 */
 enum class Skin { MATERIAL, MIUI }
@@ -30,8 +29,9 @@ enum class Skin { MATERIAL, MIUI }
  * 界面状态与操作。Compose 只读这里的状态，所有耗时动作都在后台线程跑。
  * 这样四个页面共享同一份状态，不需要层层传参。
  */
-class AppState(private val context: Context) {
-
+class AppState(
+    private val context: Context,
+) {
     private val async = AsyncTaskRunner("open-sandbox-io")
     private val router = CapabilityRouter(ProviderRegistry.providers(context))
     private val catalog = AppCatalog()
@@ -60,12 +60,16 @@ class AppState(private val context: Context) {
 
     var busyPackages by mutableStateOf<Set<String>>(emptySet())
 
-    data class ChannelUi(val name: String, val available: Boolean)
+    data class ChannelUi(
+        val name: String,
+        val available: Boolean,
+    )
+
     data class AppUi(
         val packageName: String,
         val label: String,
         val frozen: Boolean,
-        val uninstallBlocked: Boolean
+        val uninstallBlocked: Boolean,
     )
 
     // ------------------------------------------------------------------ 连接
@@ -93,8 +97,8 @@ class AppState(private val context: Context) {
                 Connection(
                     service,
                     connected.valueOrNull()!!,
-                    authorized.valueOrNull() == true
-                )
+                    authorized.valueOrNull() == true,
+                ),
             )
         }, ::onConnected)
     }
@@ -107,12 +111,13 @@ class AppState(private val context: Context) {
         }
         val connection = outcome.valueOrNull() ?: return
         delegation = connection.service
-        session = context.getString(
-            R.string.session_summary,
-            connection.session.ownerPackage,
-            connection.session.serverVersion,
-            connection.session.providerAuthority
-        )
+        session =
+            context.getString(
+                R.string.session_summary,
+                connection.session.ownerPackage,
+                connection.session.serverVersion,
+                connection.session.providerAuthority,
+            )
 
         if (connection.authorized) {
             status = context.getString(R.string.status_authorized, session)
@@ -136,9 +141,11 @@ class AppState(private val context: Context) {
     private fun resolvePolicy() {
         async.execute({ router.resolve(context, PolicyChannel::class.java) }, { outcome ->
             if (!outcome.isSuccess) {
-                status = context.getString(
-                    R.string.status_no_policy_channel, outcome.errorOrNull().orEmpty()
-                )
+                status =
+                    context.getString(
+                        R.string.status_no_policy_channel,
+                        outcome.errorOrNull().orEmpty(),
+                    )
                 return@execute
             }
             val primary = outcome.valueOrNull()!!
@@ -158,13 +165,14 @@ class AppState(private val context: Context) {
 
     fun refreshChannels() {
         async.execute({
-            val list = router.providers().map { provider: CapabilityProvider ->
-                val availability = provider.isAvailable(context)
-                ChannelUi(
-                    provider.describe(),
-                    availability.isSuccess && availability.valueOrNull() == true
-                )
-            }
+            val list =
+                router.providers().map { provider: CapabilityProvider ->
+                    val availability = provider.isAvailable(context)
+                    ChannelUi(
+                        provider.describe(),
+                        availability.isSuccess && availability.valueOrNull() == true,
+                    )
+                }
             Outcome.ok(list)
         }, { outcome -> channels = outcome.valueOrNull().orEmpty() })
     }
@@ -176,11 +184,12 @@ class AppState(private val context: Context) {
         async.execute({ service.grantedScopes() }, { outcome ->
             if (outcome.isSuccess) {
                 scopes = outcome.valueOrNull().orEmpty()
-                status = if (scopes.isEmpty()) {
-                    context.getString(R.string.status_no_scopes, session)
-                } else {
-                    context.getString(R.string.status_scopes, session, scopes.toString())
-                }
+                status =
+                    if (scopes.isEmpty()) {
+                        context.getString(R.string.status_no_scopes, session)
+                    } else {
+                        context.getString(R.string.status_scopes, session, scopes.toString())
+                    }
                 refreshApps()
             } else {
                 status = context.getString(R.string.status_scopes_failed, outcome.errorOrNull().orEmpty())
@@ -192,11 +201,12 @@ class AppState(private val context: Context) {
         val service = delegation ?: return
         status = context.getString(R.string.status_requesting_scopes)
         async.execute({ service.requestScopes(service.supportedScopes()) }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(R.string.status_scopes_updated, outcome.valueOrNull().toString())
-            } else {
-                context.getString(R.string.status_scope_request_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(R.string.status_scopes_updated, outcome.valueOrNull().toString())
+                } else {
+                    context.getString(R.string.status_scope_request_failed, outcome.errorOrNull().orEmpty())
+                }
             loadScopes()
         })
     }
@@ -217,22 +227,24 @@ class AppState(private val context: Context) {
                 seen += entry.packageName
                 val isFrozen = entry.packageName in remembered || policy.isFrozen(entry.packageName)
                 if (isFrozen) frozen += entry.packageName
-                built += AppUi(
-                    entry.packageName,
-                    entry.label,
-                    isFrozen,
-                    policy.isUninstallBlocked(entry.packageName)
-                )
+                built +=
+                    AppUi(
+                        entry.packageName,
+                        entry.label,
+                        isFrozen,
+                        policy.isUninstallBlocked(entry.packageName),
+                    )
             }
             for (packageName in remembered) {
                 if (packageName in seen || !policy.isFrozen(packageName)) continue
                 frozen += packageName
-                built += AppUi(
-                    packageName,
-                    packageName,
-                    true,
-                    policy.isUninstallBlocked(packageName)
-                )
+                built +=
+                    AppUi(
+                        packageName,
+                        packageName,
+                        true,
+                        policy.isUninstallBlocked(packageName),
+                    )
             }
             built.sortBy { it.label.lowercase() }
             Outcome.ok(Snapshot(built, frozen))
@@ -244,7 +256,10 @@ class AppState(private val context: Context) {
     }
 
     /** 目标值由开关回调给出，不再用「取反当前值」——避免连点/刷新延迟导致的反向操作。 */
-    fun setFrozen(app: AppUi, target: Boolean) {
+    fun setFrozen(
+        app: AppUi,
+        target: Boolean,
+    ) {
         if (control == null) return
         if (app.packageName in busyPackages) return
 
@@ -253,18 +268,22 @@ class AppState(private val context: Context) {
             busyPackages = busyPackages - app.packageName
             if (outcome.isSuccess) {
                 // 先本地更新，界面立刻反映；随后再从系统读一遍校准
-                apps = apps.map {
-                    if (it.packageName == app.packageName) it.copy(frozen = target) else it
-                }
-                status = context.getString(
-                    if (target) R.string.toast_frozen else R.string.toast_unfrozen,
-                    app.label
-                )
+                apps =
+                    apps.map {
+                        if (it.packageName == app.packageName) it.copy(frozen = target) else it
+                    }
+                status =
+                    context.getString(
+                        if (target) R.string.toast_frozen else R.string.toast_unfrozen,
+                        app.label,
+                    )
                 refreshApps()
             } else {
-                status = context.getString(
-                    R.string.toast_action_failed, outcome.errorOrNull().orEmpty()
-                )
+                status =
+                    context.getString(
+                        R.string.toast_action_failed,
+                        outcome.errorOrNull().orEmpty(),
+                    )
             }
         })
     }
@@ -284,48 +303,20 @@ class AppState(private val context: Context) {
         if (control == null) return
         val target = !app.uninstallBlocked
         async.execute({ withPolicyFallback { it.setUninstallBlocked(app.packageName, target) } }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(
-                    if (target) R.string.toast_uninstall_blocked else R.string.toast_uninstall_allowed,
-                    app.label
-                )
-            } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(
+                        if (target) R.string.toast_uninstall_blocked else R.string.toast_uninstall_allowed,
+                        app.label,
+                    )
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                }
             refreshApps()
         })
     }
 
     // ------------------------------------------------------------------ 隔离空间
-
-    /** 首选：系统自带的工作资料配置流程（不需要 shell）。 */
-    fun provisionManagedProfile() {
-        val activity = context as? android.app.Activity ?: return
-        val provisioner = SystemProfileProvisioner(
-            activity,
-            android.content.ComponentName(context, com.opensandbox.dhizuku.SandboxAdmin::class.java)
-        )
-        val launched = provisioner.launch()
-        status = if (launched.isSuccess) {
-            context.getString(R.string.status_profile_system_flow)
-        } else {
-            context.getString(R.string.status_profile_failed, launched.errorOrNull().orEmpty())
-        }
-    }
-
-    fun onProvisionResult(resultCode: Int) {
-        val activity = context as? android.app.Activity ?: return
-        val provisioner = SystemProfileProvisioner(
-            activity,
-            android.content.ComponentName(context, com.opensandbox.dhizuku.SandboxAdmin::class.java)
-        )
-        val result = provisioner.onResult(resultCode)
-        status = if (result.isSuccess) {
-            context.getString(R.string.status_profile_system_ok)
-        } else {
-            context.getString(R.string.status_profile_failed, result.errorOrNull().orEmpty())
-        }
-    }
 
     /**
      * 建隔离空间：先试 DO 的 binder（能建出真·工作资料），失败自动回落 shell（建完整次级用户）。
@@ -336,15 +327,19 @@ class AppState(private val context: Context) {
         async.execute({
             val name = ShellProfileProvisioner.DEFAULT_PROFILE_NAME
 
-            val viaDhi = if (delegation != null) {
-                DhizukuProfileProvisioner(context).ensureManagedProfile(name)
-            } else null
+            val viaDhi =
+                if (delegation != null) {
+                    DhizukuProfileProvisioner(context).ensureManagedProfile(name)
+                } else {
+                    null
+                }
             if (viaDhi?.isSuccess == true) {
                 return@execute viaDhi
             }
 
-            val channel = shell
-                ?: return@execute (viaDhi ?: Outcome.fail(context.getString(R.string.status_shell_unavailable, "没有可用通道")))
+            val channel =
+                shell
+                    ?: return@execute (viaDhi ?: Outcome.fail(context.getString(R.string.status_shell_unavailable, "没有可用通道")))
 
             val viaShell = ShellProfileProvisioner(context, channel).ensureManagedProfile(name)
             if (viaShell.isSuccess) {
@@ -352,60 +347,69 @@ class AppState(private val context: Context) {
             } else {
                 Outcome.fail(
                     listOfNotNull(viaDhi?.errorOrNull(), viaShell.errorOrNull())
-                        .joinToString("  /  ")
+                        .joinToString("  /  "),
                 )
             }
         }, { outcome ->
-            status = if (outcome.isSuccess) {
-                val info = outcome.valueOrNull()!!
-                context.getString(
-                    if (info.createdNow) R.string.status_profile_created else R.string.status_profile_exists,
-                    info.userId, info.name
-                )
-            } else {
-                context.getString(R.string.status_profile_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    val info = outcome.valueOrNull()!!
+                    context.getString(
+                        if (info.createdNow) R.string.status_profile_created else R.string.status_profile_exists,
+                        info.userId,
+                        info.name,
+                    )
+                } else {
+                    context.getString(R.string.status_profile_failed, outcome.errorOrNull().orEmpty())
+                }
         })
     }
 
     /** 诊断报告：通道、会话、状态、版本，一次性复制。 */
-    private val managers = listOf(
-        "com.hamondev.shevery" to "she",
-        "moe.shizuku.privileged.api" to "shi",
-        "com.rosan.dhizuku" to "dhi",
-        "frb.axeron.manager" to "ax(经 shi 兼容层可用)"
-    )
+    private val managers =
+        listOf(
+            "com.hamondev.shevery" to "she",
+            "moe.shizuku.privileged.api" to "shi",
+            "com.rosan.dhizuku" to "dhi",
+            "frb.axeron.manager" to "ax(经 shi 兼容层可用)",
+        )
 
-    fun installedManagers(): List<String> = managers.mapNotNull { (pkg, label) ->
-        if (runCatching { context.packageManager.getPackageInfo(pkg, 0) }.isSuccess) label else null
-    }
+    fun installedManagers(): List<String> =
+        managers.mapNotNull { (pkg, label) ->
+            if (runCatching { context.packageManager.getPackageInfo(pkg, 0) }.isSuccess) label else null
+        }
 
-    fun diagnosticsReport(): String = buildString {
-        appendLine("version=${com.opensandbox.dhizuku.BuildConfig.VERSION_NAME}")
-        appendLine("installed=${installedManagers().joinToString(",")}")
-        appendLine(session)
-        channels.forEach { appendLine("${it.name} available=${it.available}") }
-        appendLine("shell in use=$shellLabel")
-        appendLine(status)
-        appendLine("log=${logFile()?.absolutePath ?: "无"}")
-    }
+    fun diagnosticsReport(): String =
+        buildString {
+            appendLine("version=${com.opensandbox.dhizuku.BuildConfig.VERSION_NAME}")
+            appendLine("installed=${installedManagers().joinToString(",")}")
+            appendLine(session)
+            channels.forEach { appendLine("${it.name} available=${it.available}") }
+            appendLine("shell in use=$shellLabel")
+            appendLine(status)
+            appendLine("log=${logFile()?.absolutePath ?: "无"}")
+        }
 
-    fun logFile(): java.io.File? = runCatching {
-        java.io.File(context.filesDir, "crash-last.txt").takeIf { it.exists() }
-    }.getOrNull()
+    fun logFile(): java.io.File? =
+        runCatching {
+            java.io.File(context.filesDir, "crash-last.txt").takeIf { it.exists() }
+        }.getOrNull()
 
     // ------------------------------------------------------------------ 隔离空间内的应用
 
     fun refreshProfileApps() {
-        val channel = shell ?: run {
-            status = context.getString(R.string.status_shell_unavailable, "")
-            return
-        }
+        val channel =
+            shell ?: run {
+                status = context.getString(R.string.status_shell_unavailable, "")
+                return
+            }
         val profile = ProfileApps(channel)
 
         async.execute({
-            val userId = profile.findUser(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
-                .valueOrNull() ?: error("还没有隔离空间，先点上面的按钮建一个")
+            val userId =
+                profile
+                    .findUser(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
+                    .valueOrNull() ?: error("还没有隔离空间，先点上面的按钮建一个")
             val installed = profile.installed(userId)
             if (!installed.isSuccess) error(installed.errorOrNull().orEmpty())
             Outcome.ok(ProfileSnapshot(userId, installed.valueOrNull().orEmpty().sorted()))
@@ -425,14 +429,16 @@ class AppState(private val context: Context) {
     fun installIntoProfile(packageName: String) {
         val channel = shell ?: return
         val userId = profileUserId ?: return
+        val profile = ProfileApps(channel)
         async.execute({
-            channel.execute("sh", "-c", "pm install-existing --user $userId $packageName")
+            profile.install(userId, packageName)
         }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(R.string.profile_installed, packageName, userId)
-            } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(R.string.profile_installed, packageName, userId)
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                }
             refreshProfileApps()
         })
     }
@@ -452,6 +458,25 @@ class AppState(private val context: Context) {
         pendingLaunch = null
     }
 
+    /** 从隔离空间切回主空间（0 号用户），同样"发出去不等"。 */
+    fun switchToOwner() {
+        val channel = shell ?: return
+        async.execute({
+            channel.executeDetached(
+                ShellCommands.SHELL,
+                ShellCommands.EXECUTE,
+                ShellCommands.switchUser(0),
+            )
+        }, { outcome ->
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(R.string.profile_switch_back_ok)
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                }
+        })
+    }
+
     fun requestSwitchToOwner() {
         pendingSwitchBack = true
     }
@@ -468,67 +493,39 @@ class AppState(private val context: Context) {
     fun launchInProfile(packageName: String) {
         val userId = profileUserId ?: return
         val channel = shell ?: return
+        val profile = ProfileApps(channel)
 
-        // am start --user 会等目标用户启动，必须"发出去就返回"，否则工作线程被占死。
+        // am start --user 会等目标用户启动，必须"发出去就返回"
         async.execute({
-            val component = resolveComponent(channel, userId, packageName)
-            val command = if (component != null) {
-                ShellCommands.launchAndSwitch(userId, component)
+            val component = profile.resolveComponent(userId, packageName)
+            if (component != null) {
+                profile.launch(userId, component)
             } else {
-                // 解析不到入口（有些应用在副用户里 launcher 被禁用）→ monkey 走 LAUNCHER 意图
-                ShellCommands.launchLauncherAndSwitch(userId, packageName)
+                profile.launchByMonkey(userId, packageName)
             }
-            channel.executeDetached("sh", "-c", command)
         }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(R.string.profile_launch_requested, packageName)
-            } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-            }
-        })
-    }
-
-    /** 两种 --user 位置都试一遍；都拿不到就返回 null，交给 monkey 兜底。 */
-    private fun resolveComponent(channel: ShellChannel, userId: Int, packageName: String): String? {
-        val commands = listOf(
-            "cmd package resolve-activity --brief --user $userId $packageName",
-            "cmd package resolve-activity --user $userId --brief $packageName"
-        )
-        for (command in commands) {
-            val output = channel.execute("sh", "-c", command).valueOrNull().orEmpty()
-            val component = output.lineSequence()
-                .map { it.trim() }
-                .lastOrNull { it.contains("/") && !it.startsWith("priority=") }
-            if (component != null) return component
-        }
-        return null
-    }
-
-    /** 从隔离空间切回主空间（0 号用户）。同样"发出去不等"。 */
-    fun switchToOwner() {
-        val channel = shell ?: return
-        async.execute({
-            channel.executeDetached(ShellCommands.SHELL, ShellCommands.EXECUTE, ShellCommands.switchUser(0))
-        }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(R.string.profile_switch_back_ok)
-            } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(R.string.profile_launch_requested, packageName)
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                }
         })
     }
 
     fun removeFromProfile(packageName: String) {
         val channel = shell ?: return
         val userId = profileUserId ?: return
+        val profile = ProfileApps(channel)
         async.execute({
-            channel.execute("sh", "-c", "pm uninstall --user $userId $packageName")
+            profile.remove(userId, packageName)
         }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(R.string.profile_removed, packageName, userId)
-            } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
-            }
+            status =
+                if (outcome.isSuccess) {
+                    context.getString(R.string.profile_removed, packageName, userId)
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                }
             refreshProfileApps()
         })
     }
@@ -540,10 +537,16 @@ class AppState(private val context: Context) {
     private data class Connection(
         val service: DelegationService,
         val session: DelegationService.Session,
-        val authorized: Boolean
+        val authorized: Boolean,
     )
 
-    private data class Snapshot(val apps: List<AppUi>, val frozen: Set<String>)
+    private data class Snapshot(
+        val apps: List<AppUi>,
+        val frozen: Set<String>,
+    )
 
-    private data class ProfileSnapshot(val userId: Int, val packages: List<String>)
+    private data class ProfileSnapshot(
+        val userId: Int,
+        val packages: List<String>,
+    )
 }

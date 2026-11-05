@@ -2,7 +2,6 @@ package com.opensandbox.dhizuku.provision
 
 import android.content.Context
 import android.os.Build
-
 import android.os.UserManager
 import com.opensandbox.dhizuku.core.Outcome
 
@@ -17,9 +16,8 @@ import com.opensandbox.dhizuku.core.Outcome
  * 不碰 `userProfiles`（返回隐藏类 `UserInfo`，公开 SDK 里引用不到）。
  */
 class DhizukuProfileProvisioner(
-    private val context: Context
+    private val context: Context,
 ) : ProfileProvisioner {
-
     private val userManager: UserManager?
         get() = context.getSystemService(UserManager::class.java)
 
@@ -46,8 +44,9 @@ class DhizukuProfileProvisioner(
             val created = DhizukuProfileCreator.createManagedProfile(profileName, me)
             if (!created.isSuccess) error(created.errorOrNull().orEmpty())
 
-            val newId = profileIds(me).firstOrNull()
-                ?: error("调用成功但系统还没返回工作资料（可能需要等几秒再刷新）")
+            val newId =
+                profileIds(me).firstOrNull()
+                    ?: error("调用成功但系统还没返回工作资料（可能需要等几秒再刷新）")
 
             ProfileProvisioner.ProfileInfo(newId, profileName, createdNow = true)
         }

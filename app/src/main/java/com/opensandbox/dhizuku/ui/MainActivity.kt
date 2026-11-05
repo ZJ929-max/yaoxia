@@ -10,7 +10,6 @@ import com.opensandbox.dhizuku.core.FailureReporter
  * 业务逻辑全在 AppState 与各层，界面不再碰 DevicePolicyManager。
  */
 class MainActivity : ComponentActivity() {
-
     private lateinit var state: AppState
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,20 +25,6 @@ class MainActivity : ComponentActivity() {
         }
 
         state.connect()
-    }
-
-    @Deprecated("startActivityForResult 的兼容入口")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == com.opensandbox.dhizuku.provision.SystemProfileProvisioner.REQUEST_PROVISION) {
-            state.onProvisionResult(resultCode)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 从别的用户切回来时，进程可能被回收/状态过期，这里重新对一次
-        state.refreshProfileApps()
     }
 
     override fun onDestroy() {

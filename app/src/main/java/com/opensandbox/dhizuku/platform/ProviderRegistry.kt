@@ -15,13 +15,13 @@ import com.opensandbox.dhizuku.delegation.DhizukuProtocol
  * 顺序 = 优先级：越靠前越先被路由选中。
  */
 object ProviderRegistry {
-
     private const val PACKAGE_SHE = "com.hamondev.shevery"
 
-    fun providers(context: Context): List<CapabilityProvider> = listOf(
-        DhizukuPolicyChannel(context, ProviderId.SHE, PACKAGE_SHE, DelegationScopes.ALL),
-        DhizukuPolicyChannel(context, ProviderId.DHI, DhizukuProtocol.OFFICIAL_PACKAGE, DelegationScopes.ALL),
-        SheveryShellChannel(context),
-        ShizukuShellChannel(context)
-    )
+    fun providers(context: Context): List<CapabilityProvider> =
+        listOf(
+            DhizukuPolicyChannel(context, ProviderId.SHE, PACKAGE_SHE, DelegationScopes.ALL),
+            DhizukuPolicyChannel(context, ProviderId.DHI, DhizukuProtocol.OFFICIAL_PACKAGE, DelegationScopes.ALL),
+            SheveryShellChannel(context),
+            ShizukuShellChannel(context),
+        )
 }

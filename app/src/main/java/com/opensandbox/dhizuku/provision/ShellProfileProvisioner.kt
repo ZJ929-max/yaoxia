@@ -15,9 +15,8 @@ import com.opensandbox.dhizuku.core.Outcome
  */
 class ShellProfileProvisioner(
     private val context: Context,
-    private val shell: ShellChannel
+    private val shell: ShellChannel,
 ) : ProfileProvisioner {
-
     private val packageName: String = context.packageName
 
     private val adminComponent: String =
@@ -33,21 +32,23 @@ class ShellProfileProvisioner(
 
             // 已有设备所有者（dhi/she）时，系统常会拒绝建"工作资料"；
             // 退一步建普通独立用户，隔离效果一样，只是系统设置里不显示成工作资料。
-            val created = try {
-                run(ShellCommands.createManagedProfile(profileName))
-            } catch (managedFailure: Throwable) {
+            val created =
                 try {
-                    run(ShellCommands.createPlainUser(profileName))
-                } catch (plainFailure: Throwable) {
-                    error(
-                        "工作资料失败：${managedFailure.message}\n" +
-                        "普通用户也失败：${plainFailure.message}\n" +
-                        "当前用户列表：\n$usersBefore"
-                    )
+                    run(ShellCommands.createManagedProfile(profileName))
+                } catch (managedFailure: Throwable) {
+                    try {
+                        run(ShellCommands.createPlainUser(profileName))
+                    } catch (plainFailure: Throwable) {
+                        error(
+                            "工作资料失败：${managedFailure.message}\n" +
+                                "普通用户也失败：${plainFailure.message}\n" +
+                                "当前用户列表：\n$usersBefore",
+                        )
+                    }
                 }
-            }
-            val userId = parseCreatedUserId(created)
-                ?: error("无法从输出中解析新用户 id：$created")
+            val userId =
+                parseCreatedUserId(created)
+                    ?: error("无法从输出中解析新用户 id：$created")
 
             // 关键顺序：先设 Profile Owner，再装应用，最后才允许启动该用户
             run(ShellCommands.setProfileOwner(userId, adminComponent))
@@ -60,7 +61,8 @@ class ShellProfileProvisioner(
     private fun findUser(profileName: String): Int? {
         val output = run(ShellCommands.LIST_USERS)
         val pattern = Regex("""UserInfo\{(\d+):([^:}]+):""")
-        return pattern.findAll(output)
+        return pattern
+            .findAll(output)
             .firstOrNull { it.groupValues[2] == profileName }
             ?.groupValues
             ?.get(1)
@@ -68,8 +70,16 @@ class ShellProfileProvisioner(
     }
 
     private fun parseCreatedUserId(output: String): Int? =
-        Regex("""created user id (\d+)""").find(output)?.groupValues?.get(1)?.toIntOrNull()
-            ?: Regex("""\bid (\d+)""").find(output)?.groupValues?.get(1)?.toIntOrNull()
+        Regex("""created user id (\d+)""")
+            .find(output)
+            ?.groupValues
+            ?.get(1)
+            ?.toIntOrNull()
+            ?: Regex("""\bid (\d+)""")
+                .find(output)
+                ?.groupValues
+                ?.get(1)
+                ?.toIntOrNull()
 
     private fun run(command: String): String {
         val result = shell.execute(ShellCommands.SHELL, ShellCommands.EXECUTE, command)

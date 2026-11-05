@@ -26,14 +26,16 @@ import com.rosan.dhizuku.api.Dhizuku
  * （`android.content.pm.UserInfo` 是隐藏类，公开 SDK 里引用不到。）
  */
 object DhizukuProfileCreator {
-
     private const val USER_SERVICE = "user"
     private const val DESCRIPTOR = "android.os.IUserManager"
     private const val TRANSACTION_CREATE_PROFILE_FOR_USER = 5
     private const val MANAGED_PROFILE_TYPE = "android.os.usertype.profile.MANAGED"
 
     /** 创建成功返回 [Outcome.Ok]；失败带上系统给的原因。 */
-    fun createManagedProfile(name: String, parentUserId: Int = 0): Outcome<Boolean> =
+    fun createManagedProfile(
+        name: String,
+        parentUserId: Int = 0,
+    ): Outcome<Boolean> =
         Outcome.catching {
             check(Dhizuku.isPermissionGranted()) { "Dhizuku 未授权" }
 
@@ -45,8 +47,8 @@ object DhizukuProfileCreator {
                 data.writeInterfaceToken(DESCRIPTOR)
                 data.writeString(name)
                 data.writeString(MANAGED_PROFILE_TYPE)
-                data.writeInt(0)              // flags
-                data.writeInt(parentUserId)   // profileOf
+                data.writeInt(0) // flags
+                data.writeInt(parentUserId) // profileOf
 
                 check(
                     Dhizuku.remoteTransact(
@@ -54,8 +56,8 @@ object DhizukuProfileCreator {
                         TRANSACTION_CREATE_PROFILE_FOR_USER,
                         data,
                         reply,
-                        0
-                    )
+                        0,
+                    ),
                 ) { "remoteTransact 被拒绝（Dhizuku 可能不允许转发该服务）" }
 
                 // DO 被拒时这里抛出 SecurityException / IllegalStateException，
@@ -69,9 +71,10 @@ object DhizukuProfileCreator {
             }
         }
 
-    private fun userServiceBinder(): IBinder? = runCatching {
-        val serviceManager = Class.forName("android.os.ServiceManager")
-        val getService = serviceManager.getMethod("getService", String::class.java)
-        getService.invoke(null, USER_SERVICE) as? IBinder
-    }.getOrNull()
+    private fun userServiceBinder(): IBinder? =
+        runCatching {
+            val serviceManager = Class.forName("android.os.ServiceManager")
+            val getService = serviceManager.getMethod("getService", String::class.java)
+            getService.invoke(null, USER_SERVICE) as? IBinder
+        }.getOrNull()
 }

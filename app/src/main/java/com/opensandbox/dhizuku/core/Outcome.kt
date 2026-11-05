@@ -2,10 +2,13 @@ package com.opensandbox.dhizuku.core
 
 /** 一次操作的结果：要么带值成功，要么带原因失败。 */
 sealed class Outcome<out T> {
+    data class Ok<out T>(
+        val value: T,
+    ) : Outcome<T>()
 
-    data class Ok<out T>(val value: T) : Outcome<T>()
-
-    data class Failure(val reason: String) : Outcome<Nothing>()
+    data class Failure(
+        val reason: String,
+    ) : Outcome<Nothing>()
 
     val isSuccess: Boolean get() = this is Ok
 
@@ -18,9 +21,10 @@ sealed class Outcome<out T> {
 
         fun <T> fail(reason: String): Outcome<T> = Failure(reason)
 
-        fun <T> fail(throwable: Throwable): Outcome<T> = Failure(
-            throwable.javaClass.simpleName + (throwable.message?.let { ": $it" } ?: "")
-        )
+        fun <T> fail(throwable: Throwable): Outcome<T> =
+            Failure(
+                throwable.javaClass.simpleName + (throwable.message?.let { ": $it" } ?: ""),
+            )
 
         fun <T> catching(block: () -> T): Outcome<T> =
             try {

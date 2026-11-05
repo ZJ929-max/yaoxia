@@ -15,8 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * shi（Shizuku）通道：以 shell 身份执行命令。
  * 工作资料的创建、把应用装进资料、指定 Profile Owner 只能走这里。
  */
-class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
-
+class ShizukuShellChannel(
+    context: Context,
+) : CapabilityProvider,
+    ShellChannel {
     private val appContext: Context = context.applicationContext
 
     override val id: ProviderId = ProviderId.SHI
@@ -25,24 +27,25 @@ class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
 
     override fun describe(): String = "shi · $SHIZUKU_PACKAGE"
 
-    override fun isAvailable(context: Context): Outcome<Boolean> = Outcome.catching {
-        installed() && Shizuku.pingBinder() &&
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-    }
+    override fun isAvailable(context: Context): Outcome<Boolean> =
+        Outcome.catching {
+            installed() && Shizuku.pingBinder() &&
+                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        }
 
-    override fun requestPermission(): Outcome<Unit> = Outcome.catching {
-        Shizuku.requestPermission(PERMISSION_REQUEST_CODE)
-    }
+    override fun requestPermission(): Outcome<Unit> =
+        Outcome.catching {
+            Shizuku.requestPermission(PERMISSION_REQUEST_CODE)
+        }
 
-    override fun execute(vararg command: String): Outcome<String> =
-        ShizukuProcessRunner.run(command)
+    override fun execute(vararg command: String): Outcome<String> = ShizukuProcessRunner.run(command)
 
-    override fun executeDetached(vararg command: String): Outcome<Unit> =
-        ShizukuProcessRunner.start(command)
+    override fun executeDetached(vararg command: String): Outcome<Unit> = ShizukuProcessRunner.start(command)
 
-    private fun installed(): Boolean = runCatching {
-        appContext.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
-    }.isSuccess
+    private fun installed(): Boolean =
+        runCatching {
+            appContext.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
+        }.isSuccess
 
     private companion object {
         const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"

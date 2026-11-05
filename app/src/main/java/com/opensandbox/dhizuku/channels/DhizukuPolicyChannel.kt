@@ -27,9 +27,10 @@ class DhizukuPolicyChannel(
     context: Context,
     override val id: ProviderId,
     private val ownerPackage: String,
-    private val wantedScopes: Set<String>
-) : CapabilityProvider, PolicyChannel, DelegationService {
-
+    private val wantedScopes: Set<String>,
+) : CapabilityProvider,
+    PolicyChannel,
+    DelegationService {
     private val appContext: Context = context.applicationContext
     private val admin = ComponentName(context, SandboxAdmin::class.java)
 
@@ -41,46 +42,55 @@ class DhizukuPolicyChannel(
 
     override fun describe(): String = "${id.label} · $ownerPackage"
 
-    override fun isAvailable(context: Context): Outcome<Boolean> = Outcome.catching {
-        val manager = policyManager ?: return@catching false
-        val admins = manager.activeAdmins ?: return@catching false
-        admins.any { it.packageName == ownerPackage && manager.isDeviceOwnerApp(ownerPackage) }
-    }
+    override fun isAvailable(context: Context): Outcome<Boolean> =
+        Outcome.catching {
+            val manager = policyManager ?: return@catching false
+            val admins = manager.activeAdmins ?: return@catching false
+            admins.any { it.packageName == ownerPackage && manager.isDeviceOwnerApp(ownerPackage) }
+        }
 
     // ------------------------------------------------------------- Delegation
 
-    override fun connect(context: Context): Outcome<DelegationService.Session> = Outcome.catching {
-        check(Dhizuku.init(appContext)) { "初始化失败" }
+    override fun connect(context: Context): Outcome<DelegationService.Session> =
+        Outcome.catching {
+            check(Dhizuku.init(appContext)) { "初始化失败" }
 
-        val version = runCatching { Dhizuku.getVersionName() }.getOrDefault("")
-        DelegationService.Session(
-            ownerPackage = ownerPackage,
-            serverVersion = version,
-            providerAuthority = DhizukuProtocol.providerAuthority(ownerPackage)
-        )
-    }
+            val version = runCatching { Dhizuku.getVersionName() }.getOrDefault("")
+            DelegationService.Session(
+                ownerPackage = ownerPackage,
+                serverVersion = version,
+                providerAuthority = DhizukuProtocol.providerAuthority(ownerPackage),
+            )
+        }
 
-    override fun isAuthorized(): Outcome<Boolean> = Outcome.catching {
-        Dhizuku.isPermissionGranted()
-    }
+    override fun isAuthorized(): Outcome<Boolean> =
+        Outcome.catching {
+            Dhizuku.isPermissionGranted()
+        }
 
-    override fun requestAuthorization(activity: Activity, callback: (Outcome<Boolean>) -> Unit) {
+    override fun requestAuthorization(
+        activity: Activity,
+        callback: (Outcome<Boolean>) -> Unit,
+    ) {
         // AIDL 回调发生在 binder 线程，绝不能直接改 UI
         val main = Handler(Looper.getMainLooper())
         try {
-            Dhizuku.requestPermission(object : DhizukuRequestPermissionListener() {
-                override fun onRequestPermission(grantResult: Int) {
-                    main.post { callback(Outcome.ok(grantResult == PackageManager.PERMISSION_GRANTED)) }
-                }
-            })
+            Dhizuku.requestPermission(
+                object : DhizukuRequestPermissionListener() {
+                    override fun onRequestPermission(grantResult: Int) {
+                        main.post { callback(Outcome.ok(grantResult == PackageManager.PERMISSION_GRANTED)) }
+                    }
+                },
+            )
         } catch (throwable: Throwable) {
             main.post { callback(Outcome.fail(throwable)) }
         }
     }
 
-    override fun grantedScopes(): Outcome<Set<String>> = Outcome.catching {
-        (Dhizuku.getDelegatedScopes() ?: emptyArray()).toCollection(linkedSetOf())
-    }
+    override fun grantedScopes(): Outcome<Set<String>> =
+        Outcome.catching {
+            (Dhizuku.getDelegatedScopes() ?: emptyArray()).toCollection(linkedSetOf())
+        }
 
     override fun requestScopes(scopes: Collection<String>): Outcome<Set<String>> {
         // setDelegatedScopes 是"整体替换"：先并上已有范围，别把用户手工授的抹掉
@@ -97,25 +107,35 @@ class DhizukuPolicyChannel(
 
     // ------------------------------------------------------------- Policy
 
-    override fun isFrozen(packageName: String): Boolean = query { component ->
-        policyManager?.isPackageSuspended(component, packageName) ?: false
-    }
-
-    override fun setFrozen(packageName: String, frozen: Boolean): Outcome<Unit> {
-        val result = perform { component ->
-            val failed = policyManager?.setPackagesSuspended(component, arrayOf(packageName), frozen)
-            check(failed == null || failed.isEmpty()) { "系统未处理：${failed?.joinToString()}" }
+    override fun isFrozen(packageName: String): Boolean =
+        query { component ->
+            policyManager?.isPackageSuspended(component, packageName) ?: false
         }
+
+    override fun setFrozen(
+        packageName: String,
+        frozen: Boolean,
+    ): Outcome<Unit> {
+        val result =
+            perform { component ->
+                val failed = policyManager?.setPackagesSuspended(component, arrayOf(packageName), frozen)
+                check(failed == null || failed.isEmpty()) { "系统未处理：${failed?.joinToString()}" }
+            }
         return result
     }
 
-    override fun isUninstallBlocked(packageName: String): Boolean = query { component ->
-        policyManager?.isUninstallBlocked(component, packageName) ?: false
-    }
+    override fun isUninstallBlocked(packageName: String): Boolean =
+        query { component ->
+            policyManager?.isUninstallBlocked(component, packageName) ?: false
+        }
 
-    override fun setUninstallBlocked(packageName: String, blocked: Boolean): Outcome<Unit> = perform { component ->
-        policyManager?.setUninstallBlocked(component, packageName, blocked)
-    }
+    override fun setUninstallBlocked(
+        packageName: String,
+        blocked: Boolean,
+    ): Outcome<Unit> =
+        perform { component ->
+            policyManager?.setUninstallBlocked(component, packageName, blocked)
+        }
 
     // ------------------------------------------------------------- 内部
 
@@ -123,8 +143,7 @@ class DhizukuPolicyChannel(
      * 委派身份下 admin 参数的要求因实现方而异：
      * 有的要求传调用方自己的 admin，有的只接受 null。先带 admin，再退到 null。
      */
-    private fun ownerOrOwnAdmin(): ComponentName? =
-        runCatching { Dhizuku.getOwnerComponent(appContext) }.getOrNull() ?: admin
+    private fun ownerOrOwnAdmin(): ComponentName? = runCatching { Dhizuku.getOwnerComponent(appContext) }.getOrNull() ?: admin
 
     private fun perform(action: (ComponentName?) -> Unit): Outcome<Unit> {
         if (policyManager == null) return Outcome.fail("DevicePolicyManager 不可用")
@@ -139,7 +158,7 @@ class DhizukuPolicyChannel(
         val secondError = second.exceptionOrNull()
         return Outcome.fail(
             "${firstError?.javaClass?.simpleName} / ${secondError?.javaClass?.simpleName}: " +
-                (secondError?.message ?: "")
+                (secondError?.message ?: ""),
         )
     }
 
