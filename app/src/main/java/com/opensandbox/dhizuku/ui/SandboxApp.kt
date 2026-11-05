@@ -77,8 +77,12 @@ fun SandboxTheme(skin: Skin, glassEnabled: Boolean, content: @Composable () -> U
     }
 
     MaterialTheme(colorScheme = colors) {
-        SandboxSurface {
-            CompositionLocalProvider(LocalGlassEnabled provides glassEnabled, content = content)
+        ProvideSkin(skin) {
+            CompositionLocalProvider(
+                LocalGlassEnabled provides glassEnabled,
+                LocalSkin provides skin,
+                content = content
+            )
         }
     }
 }
@@ -174,10 +178,10 @@ private fun StatusScreen(state: AppState) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = state::connect, enabled = !state.busy) {
+                SkinButton(onClick = state::connect, enabled = !state.busy) {
                     Text(stringResource(R.string.button_connect))
                 }
-                OutlinedButton(onClick = state::requestScopes) {
+                SkinOutlinedButton(onClick = state::requestScopes) {
                     Text(stringResource(R.string.button_scopes))
                 }
             }
@@ -251,7 +255,7 @@ private fun AppsScreen(state: AppState) {
                                 else MaterialTheme.colorScheme.outline
                             )
                         }
-                        Switch(
+                        SkinSwitch(
                             checked = app.frozen,
                             enabled = app.packageName !in state.busyPackages,
                             onCheckedChange = { target -> state.setFrozen(app, target) }
@@ -276,10 +280,10 @@ private fun ProfileScreen(state: AppState) {
                 style = MaterialTheme.typography.bodySmall
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = state::createProfile) {
+                SkinButton(onClick = state::createProfile) {
                     Text(stringResource(R.string.button_create_profile))
                 }
-                OutlinedButton(onClick = state::refreshProfileApps) {
+                SkinOutlinedButton(onClick = state::refreshProfileApps) {
                     Text(stringResource(R.string.profile_refresh_apps))
                 }
             }
@@ -379,7 +383,7 @@ private fun SettingsScreen(state: AppState) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Switch(
+            SkinSwitch(
                 checked = state.glassEnabled,
                 onCheckedChange = { state.glassEnabled = it }
             )
