@@ -71,6 +71,7 @@ class AppState(private val context: Context) {
 
     val profileUserId: Int? get() = profileFlow.userId
     val profileApps: List<String> get() = profileFlow.packages
+    val profileBusy: Boolean get() = profileFlow.busy
 
     // ------------------------------------------------------------------ 动作转发
 

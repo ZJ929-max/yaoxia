@@ -35,7 +35,10 @@ internal fun ProfileScreen(state: AppState) {
                 SkinButton(onClick = state::createProfile) {
                     Text(stringResource(R.string.button_create_profile))
                 }
-                SkinOutlinedButton(onClick = state::refreshProfileApps) {
+                SkinOutlinedButton(
+                    onClick = state::refreshProfileApps,
+                    enabled = !state.profileBusy,
+                ) {
                     Text(stringResource(R.string.profile_refresh_apps))
                 }
             }
@@ -45,19 +48,17 @@ internal fun ProfileScreen(state: AppState) {
             ) {
                 Text(stringResource(R.string.profile_switch_back))
             }
-            Card(
-                Modifier.fillMaxWidth(),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-            ) {
+            GlassCard(Modifier.fillMaxWidth()) {
                 Text(
                     state.status,
                     Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+        }
+
+        if (state.profileBusy) {
+            LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
 
         var filter by rememberSaveable { mutableIntStateOf(0) }

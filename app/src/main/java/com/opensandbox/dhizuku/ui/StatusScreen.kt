@@ -19,6 +19,10 @@ import com.opensandbox.dhizuku.R
 
 @Composable
 internal fun StatusScreen(state: AppState) {
+    if (state.busy) {
+        LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
+    }
+
     LazyColumn(
         Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

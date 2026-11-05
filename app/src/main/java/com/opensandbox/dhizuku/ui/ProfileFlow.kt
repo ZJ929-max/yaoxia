@@ -28,6 +28,9 @@ class ProfileFlow(
     var packages by mutableStateOf<List<String>>(emptyList())
         private set
 
+    var busy by mutableStateOf(false)
+        private set
+
     private fun profileApps(): ProfileApps? = shellProvider()?.let { ProfileApps(it) }
 
     fun refresh() {
@@ -37,6 +40,7 @@ class ProfileFlow(
             return
         }
 
+        busy = true
         async.execute({
             val id = profile.findUser(ShellProfileProvisioner.DEFAULT_PROFILE_NAME).valueOrNull()
                 ?: error("还没有隔离空间，先点上面的按钮建一个")
@@ -44,6 +48,7 @@ class ProfileFlow(
             if (!installed.isSuccess) error(installed.errorOrNull().orEmpty())
             Outcome.ok(id to installed.valueOrNull().orEmpty().sorted())
         }, { outcome ->
+            busy = false
             val snapshot = outcome.valueOrNull()
             if (snapshot == null) {
                 report(context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty()))
@@ -58,7 +63,9 @@ class ProfileFlow(
     fun install(packageName: String) {
         val profile = profileApps() ?: return
         val id = userId ?: return
+        busy = true
         async.execute({ profile.install(id, packageName) }, { outcome ->
+            busy = false
             report(
                 if (outcome.isSuccess) {
                     context.getString(R.string.profile_installed, packageName, id)
@@ -73,7 +80,9 @@ class ProfileFlow(
     fun remove(packageName: String) {
         val profile = profileApps() ?: return
         val id = userId ?: return
+        busy = true
         async.execute({ profile.remove(id, packageName) }, { outcome ->
+            busy = false
             report(
                 if (outcome.isSuccess) {
                     context.getString(R.string.profile_removed, packageName, id)
