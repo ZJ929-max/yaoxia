@@ -22,4 +22,12 @@ object ShellCommands {
 
     fun installExisting(userId: Int, packageName: String): String =
         "pm install-existing --user $userId $packageName"
+
+    fun uninstallForUser(userId: Int, packageName: String): String =
+        "pm uninstall --user $userId $packageName"
+
+    fun listPackages(userId: Int): String = "pm list packages --user $userId"
+
+    fun launch(userId: Int, component: String): String =
+        "am start --user $userId -n $component"
 }

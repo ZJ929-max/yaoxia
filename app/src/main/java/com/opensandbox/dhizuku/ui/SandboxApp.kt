@@ -263,28 +263,74 @@ private fun AppsScreen(state: AppState) {
 
 @Composable
 private fun ProfileScreen(state: AppState) {
-    Column(
-        Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleMedium)
-        Text(
-            stringResource(R.string.profile_explain),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        // 系统配置流程在"已有设备所有者"时必然失败（dhi 占着），所以只保留 shell 路线
-        Button(onClick = state::createProfile) {
-            Text(stringResource(R.string.button_create_profile))
-        }
-        Card(
-            Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleMedium)
             Text(
-                state.status,
-                Modifier.padding(16.dp),
+                stringResource(R.string.profile_explain),
                 style = MaterialTheme.typography.bodySmall
             )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = state::createProfile) {
+                    Text(stringResource(R.string.button_create_profile))
+                }
+                OutlinedButton(onClick = state::refreshProfileApps) {
+                    Text(stringResource(R.string.profile_refresh_apps))
+                }
+            }
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(
+                    state.status,
+                    Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
+        if (state.profileUserId == null) {
+            Text(
+                stringResource(R.string.profile_none),
+                Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            return@Column
+        }
+
+        LazyColumn(Modifier.fillMaxSize()) {
+            items(state.apps, key = { it.packageName }) { app ->
+                val installed = app.packageName in state.profileApps
+                Column {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(app.label, fontWeight = FontWeight.Medium)
+                            Text(
+                                if (installed) stringResource(R.string.profile_state_installed)
+                                else stringResource(R.string.profile_state_absent),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (installed) {
+                            TextButton(onClick = { state.launchInProfile(app.packageName) }) {
+                                Text(stringResource(R.string.profile_open))
+                            }
+                        } else {
+                            TextButton(onClick = { state.installIntoProfile(app.packageName) }) {
+                                Text(stringResource(R.string.profile_install))
+                            }
+                        }
+                    }
+                    Divider()
+                }
+            }
         }
     }
 }

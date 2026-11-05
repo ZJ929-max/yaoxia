@@ -73,6 +73,24 @@
     <string name="apps_search">搜索应用</string>
     <string name="apps_uninstall_block">禁止卸载</string>
 
+    <string name="profile_apps_count">隔离空间内有 %1$d 个包</string>
+    <string name="profile_installed">已装入 user %2$d：%1$s</string>
+    <string name="profile_launched">已在隔离空间启动：%1$s</string>
+    <string name="profile_refresh_apps">刷新已装应用</string>
+    <string name="profile_install">装入</string>
+    <string name="profile_launch">启动</string>
+    <string name="profile_empty">隔离空间里还没有应用，先点「刷新已装应用」。</string>
+
+    <string name="status_profile_ready">隔离空间 user %1$d：已装 %2$d 个应用</string>
+    <string name="toast_installed_into_profile">已把 %1$s 装进 user %2$d</string>
+    <string name="toast_launched_in_profile">已在隔离空间打开 %1$s</string>
+    <string name="profile_open">打开</string>
+    <string name="profile_refresh">刷新隔离空间</string>
+
+    <string name="profile_none">还没有隔离空间，先点上面的按钮建一个。</string>
+    <string name="profile_state_installed">已在隔离空间</string>
+    <string name="profile_state_absent">未装入隔离空间</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

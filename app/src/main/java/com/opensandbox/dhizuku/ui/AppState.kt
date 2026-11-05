@@ -17,6 +17,7 @@ import com.opensandbox.dhizuku.delegation.DelegationService
 import com.opensandbox.dhizuku.platform.CapabilityProvider
 import com.opensandbox.dhizuku.platform.CapabilityRouter
 import com.opensandbox.dhizuku.platform.ProviderRegistry
+import com.opensandbox.dhizuku.provision.ProfileApps
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
 import com.opensandbox.dhizuku.provision.SystemProfileProvisioner
 
@@ -45,8 +46,11 @@ class AppState(private val context: Context) {
     var apps by mutableStateOf<List<AppUi>>(emptyList())
     var scopes by mutableStateOf<Set<String>>(emptySet())
     var busy by mutableStateOf(false)
+    var profileUserId by mutableStateOf<Int?>(null)
+    var profileApps by mutableStateOf<List<String>>(emptyList())
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
+
     var busyPackages by mutableStateOf<Set<String>>(emptySet())
 
     data class ChannelUi(val name: String, val available: Boolean)
@@ -364,6 +368,78 @@ class AppState(private val context: Context) {
         java.io.File(context.filesDir, "crash-last.txt").takeIf { it.exists() }
     }.getOrNull()
 
+    // ------------------------------------------------------------------ 隔离空间内的应用
+
+    fun refreshProfileApps() {
+        val channel = shell ?: run {
+            status = context.getString(R.string.status_shell_unavailable, "")
+            return
+        }
+        async.execute({
+            val users = channel.execute("sh", "-c", "pm list users").valueOrNull().orEmpty()
+            val id = Regex("""UserInfo\{(\d+):${ShellProfileProvisioner.DEFAULT_PROFILE_NAME}:""")
+                .find(users)?.groupValues?.get(1)?.toIntOrNull()
+                ?: error("还没有隔离空间，先在上面创建")
+
+            val listing = channel.execute("sh", "-c", "pm list packages --user $id")
+                .valueOrNull().orEmpty()
+            val packages = listing.lineSequence()
+                .map { it.removePrefix("package:").trim() }
+                .filter { it.isNotEmpty() }
+                .sorted()
+                .toList()
+            Outcome.ok(ProfileSnapshot(id, packages))
+        }, { outcome ->
+            val snapshot = outcome.valueOrNull()
+            if (snapshot == null) {
+                status = context.getString(
+                    R.string.toast_action_failed, outcome.errorOrNull().orEmpty()
+                )
+                return@execute
+            }
+            profileUserId = snapshot.userId
+            profileApps = snapshot.packages
+            status = context.getString(R.string.profile_apps_count, snapshot.packages.size)
+        })
+    }
+
+    fun installIntoProfile(packageName: String) {
+        val channel = shell ?: return
+        val userId = profileUserId ?: return
+        async.execute({
+            channel.execute("sh", "-c", "pm install-existing --user $userId $packageName")
+        }, { outcome ->
+            status = if (outcome.isSuccess) {
+                context.getString(R.string.profile_installed, packageName, userId)
+            } else {
+                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+            }
+            refreshProfileApps()
+        })
+    }
+
+    fun launchInProfile(packageName: String) {
+        val channel = shell ?: return
+        val userId = profileUserId ?: return
+        async.execute({
+            val resolved = channel.execute(
+                "sh", "-c", "cmd package resolve-activity --user $userId --brief $packageName"
+            ).valueOrNull().orEmpty()
+            val component = resolved.lineSequence()
+                .map { it.trim() }
+                .lastOrNull { it.contains("/") }
+                ?: error("找不到启动入口：$packageName")
+            channel.execute("sh", "-c", "am start --user $userId -n $component")
+        }, { outcome ->
+            status = if (outcome.isSuccess) {
+                context.getString(R.string.profile_launched, packageName)
+            } else {
+                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+            }
+        })
+    }
+
+
     fun shutdown() = async.shutdown()
 
     // ------------------------------------------------------------------ 内部
@@ -375,4 +451,6 @@ class AppState(private val context: Context) {
     )
 
     private data class Snapshot(val apps: List<AppUi>, val frozen: Set<String>)
+
+    private data class ProfileSnapshot(val userId: Int, val packages: List<String>)
 }

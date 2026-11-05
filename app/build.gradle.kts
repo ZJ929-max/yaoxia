@@ -69,5 +69,9 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+
+    // 小米风格组件 + 液态玻璃
+    implementation("top.yukonga.miuix.kmp:miuix-ui:0.9.4")
+    implementation("io.github.kyant0:backdrop:2.0.1")
     implementation("androidx.activity:activity-compose:1.9.3")
 }
