@@ -9,7 +9,7 @@ import com.opensandbox.dhizuku.platform.ProviderId
 import rikka.shizuku.Shizuku
 import java.io.ByteArrayOutputStream
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * shi（Shizuku）通道：以 shell 身份执行命令。
@@ -40,23 +40,29 @@ class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
         val stdout = ByteArrayOutputStream()
         val stderr = ByteArrayOutputStream()
 
-        // stderr 必须并发读，否则缓冲区满了会互相卡死；很多 pm 报错只写 stderr
         val stderrReader = Thread {
             runCatching { process.errorStream.use { it.copyTo(stderr) } }
         }.apply { isDaemon = true; start() }
 
-        process.inputStream.use { it.copyTo(stdout) }
+        // 用"看门狗 + 阻塞 waitFor"：不要用 exitValue()，
+        // Shizuku 的远程进程在未真正退出时会抛 "process hasn't exited"。
+        val finished = AtomicBoolean(false)
+        val watchdog = Thread {
+            runCatching {
+                Thread.sleep(COMMAND_TIMEOUT_MILLIS)
+                if (!finished.get()) process.destroyForcibly()
+            }
+        }.apply { isDaemon = true; start() }
 
-        // 没有超时的 shell 调用会把 UI 线程外的唯一工作线程永远占住
-        if (!process.waitFor(COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-            process.destroyForcibly()
-            error("超时 ${COMMAND_TIMEOUT_SECONDS}s：${command.joinToString(" ")}")
-        }
+        process.inputStream.use { it.copyTo(stdout) }
+        val exitCode = process.waitFor()
+
+        finished.set(true)
+        watchdog.interrupt()
         stderrReader.join(1000)
 
         val out = stdout.toString(Charsets.UTF_8.name()).trim()
         val err = stderr.toString(Charsets.UTF_8.name()).trim()
-        val exitCode = process.exitValue()
 
         check(exitCode == 0) {
             val detail = err.ifEmpty { out }
@@ -72,6 +78,6 @@ class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
     private companion object {
         const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
         const val PERMISSION_REQUEST_CODE = 2001
-        const val COMMAND_TIMEOUT_SECONDS = 30L
+        const val COMMAND_TIMEOUT_MILLIS = 30_000L
     }
 }

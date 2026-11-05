@@ -1,6 +1,5 @@
 package com.opensandbox.dhizuku.ui
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,6 +8,8 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -33,7 +34,7 @@ import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
  * 组装层：装配路由与通道，渲染状态，转发用户操作。
  * 这里不出现任何 dhi / she / shi 的具体类名——那些都在 ProviderRegistry 里。
  */
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
 
     private val async = AsyncTaskRunner("open-sandbox-io")
     private val catalog = AppCatalog()
@@ -52,6 +53,7 @@ class MainActivity : Activity() {
     private var sessionText = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(Appearance.themeRes(this))
         super.onCreate(savedInstanceState)
 
         router = CapabilityRouter(ProviderRegistry.providers(this))
@@ -105,6 +107,7 @@ class MainActivity : Activity() {
         root.addView(statusView)
 
         root.addView(button(R.string.button_connect) { connect() })
+        root.addView(appearanceButton())
         root.addView(button(R.string.button_scopes) { requestScopes() })
         root.addView(button(R.string.button_create_profile) { createProfile() })
         root.addView(button(R.string.button_refresh) { refreshApps() })
@@ -130,8 +133,16 @@ class MainActivity : Activity() {
         return root
     }
 
+    private fun appearanceButton(): MaterialButton = MaterialButton(this).apply {
+        text = getString(
+            R.string.button_appearance,
+            getString(Appearance.labelRes(this@MainActivity))
+        )
+        setOnClickListener { guard { Appearance.cycle(this@MainActivity); recreate() } }
+    }
+
     private fun button(textRes: Int, onClick: () -> Unit): Button =
-        Button(this).apply {
+        MaterialButton(this).apply {
             setText(textRes)
             setOnClickListener { guard(onClick) }
         }

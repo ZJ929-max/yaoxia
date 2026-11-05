@@ -58,4 +58,8 @@ dependencies {
     implementation("dev.rikka.shizuku:api:13.0.0")
     // 清单里声明的 rikka.shizuku.ShizukuProvider 在这个包里；只加 api 会导致启动即崩
     implementation("dev.rikka.shizuku:provider:13.0.0")
+
+    // 界面：Material 3 + AppCompat
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
 }

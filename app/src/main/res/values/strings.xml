@@ -7,6 +7,10 @@
     <string name="button_scopes">② 申请委派范围</string>
     <string name="button_create_profile">④ 创建隔离空间</string>
     <string name="button_refresh">③ 刷新应用列表</string>
+    <string name="button_appearance">⑤ 外观：%1$s</string>
+    <string name="appearance_material">Material 3</string>
+    <string name="appearance_miui">MIUI</string>
+    <string name="appearance_oneui">One UI</string>
     <string name="button_copy_diagnostics">复制诊断信息</string>
 
     <string name="status_connecting">正在连接…</string>

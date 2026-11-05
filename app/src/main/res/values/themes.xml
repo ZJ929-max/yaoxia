@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 默认：Google Material 3 -->
+    <style name="Theme.OpenSandbox" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+    </style>
+
+    <!-- MIUI 风：亮蓝主色 + 小圆角 + 更紧凑 -->
+    <style name="Theme.OpenSandbox.Miui" parent="Theme.OpenSandbox">
+        <item name="colorPrimary">#3482FF</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#DCE8FF</item>
+        <item name="colorOnPrimaryContainer">#00174A</item>
+        <item name="shapeAppearanceSmallComponent">@style/Shape.Miui.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/Shape.Miui.Medium</item>
+    </style>
+
+    <style name="Shape.Miui.Small" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">6dp</item>
+    </style>
+
+    <style name="Shape.Miui.Medium" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+
+    <!-- One UI 风：深蓝主色 + 大圆角 + 更松的留白 -->
+    <style name="Theme.OpenSandbox.OneUi" parent="Theme.OpenSandbox">
+        <item name="colorPrimary">#1B6EF3</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#D7E3FF</item>
+        <item name="colorOnPrimaryContainer">#001B3F</item>
+        <item name="shapeAppearanceSmallComponent">@style/Shape.OneUi.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/Shape.OneUi.Medium</item>
+    </style>
+
+    <style name="Shape.OneUi.Small" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="Shape.OneUi.Medium" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+</resources>
