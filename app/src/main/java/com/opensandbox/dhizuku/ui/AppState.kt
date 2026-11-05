@@ -348,7 +348,7 @@ class AppState(private val context: Context) {
         "com.hamondev.shevery" to "she",
         "moe.shizuku.privileged.api" to "shi",
         "com.rosan.dhizuku" to "dhi",
-        "frb.axeron.manager" to "ax(接口受保护)"
+        "frb.axeron.manager" to "ax(经 shi 兼容层可用)"
     )
 
     fun installedManagers(): List<String> = managers.mapNotNull { (pkg, label) ->

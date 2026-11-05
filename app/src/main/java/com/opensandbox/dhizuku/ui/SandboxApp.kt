@@ -392,6 +392,12 @@ private fun SettingsScreen(state: AppState) {
         }
 
         Text(
+            stringResource(R.string.settings_ax_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Text(
             stringResource(
                 R.string.log_path,
                 state.logFile()?.absolutePath ?: stringResource(R.string.log_none)

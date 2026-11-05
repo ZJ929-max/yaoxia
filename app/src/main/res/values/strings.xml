@@ -91,6 +91,8 @@
     <string name="profile_state_installed">已在隔离空间</string>
     <string name="profile_state_absent">未装入隔离空间</string>
 
+    <string name="settings_ax_hint">装了 AxManager？在它里面开启「AX-权限接管」，本应用会通过 shi 通道连上，无需额外配置。</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>
