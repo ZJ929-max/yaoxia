@@ -58,7 +58,7 @@
     <string name="apps_count">共 %1$d 个应用</string>
     <string name="apps_empty">还没有列表，先到「状态」页连接并授权。</string>
     <string name="profile_title">隔离空间</string>
-    <string name="profile_explain">用 shi 的 shell 能力建一个独立用户：建用户 → 设为资料所有者 → 把本应用装进去。\n代价：部分系统会禁止在已有设备所有者时创建，失败信息会显示在下面。</string>
+    <string name="profile_explain">优先用 dhi 的设备所有者身份建「工作资料」；失败会自动回落成 shell 建的「完整次级用户」（隔离够用，但系统里显示为另一个账号）。两条都失败时，下面会写清各自的原因。</string>
     <string name="settings_appearance">外观</string>
     <string name="settings_glass">液态玻璃</string>
     <string name="settings_glass_hint">在支持的设备上给卡片加折射效果；低版本自动降级。</string>
@@ -95,6 +95,9 @@
 
     <string name="profile_remove">移出</string>
     <string name="profile_removed">已从 user %2$d 移出 %1$s</string>
+
+    <string name="profile_switch_back">切回主空间</string>
+    <string name="profile_switch_back_ok">已请求切回主空间</string>
 
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>

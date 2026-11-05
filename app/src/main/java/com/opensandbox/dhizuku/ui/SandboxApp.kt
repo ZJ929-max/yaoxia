@@ -286,6 +286,9 @@ private fun ProfileScreen(state: AppState) {
                 SkinOutlinedButton(onClick = state::refreshProfileApps) {
                     Text(stringResource(R.string.profile_refresh_apps))
                 }
+                SkinOutlinedButton(onClick = state::switchToOwner) {
+                    Text(stringResource(R.string.profile_switch_back))
+                }
             }
             Card(
                 Modifier.fillMaxWidth(),

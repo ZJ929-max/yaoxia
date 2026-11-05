@@ -14,3 +14,11 @@
 
 # Dhizuku 的 init() 引用了隐藏类，编译期不存在，运行时由系统提供
 -dontwarn android.app.ActivityThread
+
+# 四大组件按基类兜底保留：AGP 对清单组件的自动 keep 在
+# 「清单里是相对类名 + R8 全量混淆」时可能漏掉，导致装机即 ClassNotFound
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider

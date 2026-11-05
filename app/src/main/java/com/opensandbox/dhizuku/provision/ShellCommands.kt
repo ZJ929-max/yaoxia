@@ -30,4 +30,6 @@ object ShellCommands {
 
     fun launch(userId: Int, component: String): String =
         "am start --user $userId -n $component"
+
+    fun switchUser(userId: Int): String = "am switch-user $userId"
 }

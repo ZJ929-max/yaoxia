@@ -18,6 +18,7 @@ import com.opensandbox.dhizuku.platform.CapabilityProvider
 import com.opensandbox.dhizuku.platform.CapabilityRouter
 import com.opensandbox.dhizuku.platform.ProviderRegistry
 import com.opensandbox.dhizuku.provision.ProfileApps
+import com.opensandbox.dhizuku.provision.ShellCommands
 import com.opensandbox.dhizuku.provision.DhizukuProfileProvisioner
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
 import com.opensandbox.dhizuku.provision.SystemProfileProvisioner
@@ -322,39 +323,34 @@ class AppState(private val context: Context) {
         }
     }
 
-    /** 兜底：用 shi 的 shell 建（部分 ROM 上系统流程被禁时可用）。 */
+    /**
+     * 建隔离空间：先试 DO 的 binder（能建出真·工作资料），失败自动回落 shell（建完整次级用户）。
+     * 两条路都失败才报错，并且把两边的原因都写出来——否则用户只看到一句"失败"，无从下手。
+     */
     fun createProfile() {
-        // 设备已有 device owner 时，shell 建 managed profile 必被
-        // no_add_managed_profile 拒绝（连 Shizuku 的 shell 也不行）。
-        // 所以先试「借 DO 的 binder」这条路，它不需要 shell 通道。
-        if (delegation != null) {
-            status = context.getString(R.string.status_profile_creating)
-            async.execute({
-                DhizukuProfileProvisioner(context)
-                    .ensureManagedProfile(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
-            }, { outcome ->
-                status = if (outcome.isSuccess) {
-                    val info = outcome.valueOrNull()!!
-                    context.getString(
-                        if (info.createdNow) R.string.status_profile_created else R.string.status_profile_exists,
-                        info.userId, info.name
-                    )
-                } else {
-                    context.getString(R.string.status_profile_failed, outcome.errorOrNull().orEmpty())
-                }
-            })
-            return
-        }
-
-        val channel = shell ?: run {
-            status = context.getString(R.string.status_shell_unavailable, "")
-            return
-        }
-        val provisioner = ShellProfileProvisioner(context, channel)
-
         status = context.getString(R.string.status_profile_creating)
         async.execute({
-            provisioner.ensureManagedProfile(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
+            val name = ShellProfileProvisioner.DEFAULT_PROFILE_NAME
+
+            val viaDhi = if (delegation != null) {
+                DhizukuProfileProvisioner(context).ensureManagedProfile(name)
+            } else null
+            if (viaDhi?.isSuccess == true) {
+                return@execute viaDhi
+            }
+
+            val channel = shell
+                ?: return@execute (viaDhi ?: Outcome.fail(context.getString(R.string.status_shell_unavailable, "没有可用通道")))
+
+            val viaShell = ShellProfileProvisioner(context, channel).ensureManagedProfile(name)
+            if (viaShell.isSuccess) {
+                viaShell
+            } else {
+                Outcome.fail(
+                    listOfNotNull(viaDhi?.errorOrNull(), viaShell.errorOrNull())
+                        .joinToString("  /  ")
+                )
+            }
         }, { outcome ->
             status = if (outcome.isSuccess) {
                 val info = outcome.valueOrNull()!!
@@ -462,6 +458,20 @@ class AppState(private val context: Context) {
         }, { outcome ->
             status = if (outcome.isSuccess) {
                 context.getString(R.string.profile_launched, packageName)
+            } else {
+                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+            }
+        })
+    }
+
+    /** 从隔离空间切回主空间（0 号用户）。同样"发出去不等"。 */
+    fun switchToOwner() {
+        val channel = shell ?: return
+        async.execute({
+            channel.executeDetached(ShellCommands.SHELL, ShellCommands.EXECUTE, ShellCommands.switchUser(0))
+        }, { outcome ->
+            status = if (outcome.isSuccess) {
+                context.getString(R.string.profile_switch_back_ok)
             } else {
                 context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
             }
