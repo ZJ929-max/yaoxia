@@ -232,7 +232,10 @@ private fun ProfileScreen(state: AppState) {
             stringResource(R.string.profile_explain),
             style = MaterialTheme.typography.bodyMedium
         )
-        Button(onClick = state::createProfile) {
+        Button(onClick = state::provisionManagedProfile) {
+            Text(stringResource(R.string.button_provision_system))
+        }
+        OutlinedButton(onClick = state::createProfile) {
             Text(stringResource(R.string.button_create_profile))
         }
         Card(

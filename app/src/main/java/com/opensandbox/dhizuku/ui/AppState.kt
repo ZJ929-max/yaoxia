@@ -18,6 +18,7 @@ import com.opensandbox.dhizuku.platform.CapabilityProvider
 import com.opensandbox.dhizuku.platform.CapabilityRouter
 import com.opensandbox.dhizuku.platform.ProviderRegistry
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
+import com.opensandbox.dhizuku.provision.SystemProfileProvisioner
 
 /** 外观预设，只影响配色，不影响布局。 */
 enum class Skin { MATERIAL, MIUI }
@@ -260,6 +261,36 @@ class AppState(private val context: Context) {
 
     // ------------------------------------------------------------------ 隔离空间
 
+    /** 首选：系统自带的工作资料配置流程（不需要 shell）。 */
+    fun provisionManagedProfile() {
+        val activity = context as? android.app.Activity ?: return
+        val provisioner = SystemProfileProvisioner(
+            activity,
+            android.content.ComponentName(context, com.opensandbox.dhizuku.SandboxAdmin::class.java)
+        )
+        val launched = provisioner.launch()
+        status = if (launched.isSuccess) {
+            context.getString(R.string.status_profile_system_flow)
+        } else {
+            context.getString(R.string.status_profile_failed, launched.errorOrNull().orEmpty())
+        }
+    }
+
+    fun onProvisionResult(resultCode: Int) {
+        val activity = context as? android.app.Activity ?: return
+        val provisioner = SystemProfileProvisioner(
+            activity,
+            android.content.ComponentName(context, com.opensandbox.dhizuku.SandboxAdmin::class.java)
+        )
+        val result = provisioner.onResult(resultCode)
+        status = if (result.isSuccess) {
+            context.getString(R.string.status_profile_system_ok)
+        } else {
+            context.getString(R.string.status_profile_failed, result.errorOrNull().orEmpty())
+        }
+    }
+
+    /** 兜底：用 shi 的 shell 建（部分 ROM 上系统流程被禁时可用）。 */
     fun createProfile() {
         val channel = shell ?: run {
             status = context.getString(R.string.status_shell_unavailable, "")

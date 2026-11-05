@@ -28,6 +28,14 @@ class MainActivity : ComponentActivity() {
         state.connect()
     }
 
+    @Deprecated("startActivityForResult 的兼容入口")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == com.opensandbox.dhizuku.provision.SystemProfileProvisioner.REQUEST_PROVISION) {
+            state.onProvisionResult(resultCode)
+        }
+    }
+
     override fun onDestroy() {
         state.shutdown()
         super.onDestroy()

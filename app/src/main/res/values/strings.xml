@@ -63,6 +63,10 @@
     <string name="settings_glass">液态玻璃</string>
     <string name="settings_glass_hint">在支持的设备上给卡片加折射效果；低版本自动降级。</string>
 
+    <string name="button_provision_system">创建工作资料（系统流程）</string>
+    <string name="status_profile_system_flow">已拉起系统配置界面，按提示继续…</string>
+    <string name="status_profile_system_ok">工作资料已创建，本应用已成为其管理者</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>
