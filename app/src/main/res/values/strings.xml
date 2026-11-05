@@ -50,6 +50,19 @@
     <string name="crash_close">关闭</string>
     <string name="crash_copied">已复制</string>
 
+    <string name="tab_status">状态</string>
+    <string name="tab_apps">应用</string>
+    <string name="tab_profile">隔离</string>
+    <string name="tab_settings">设置</string>
+    <string name="section_channels">通道</string>
+    <string name="apps_count">共 %1$d 个应用</string>
+    <string name="apps_empty">还没有列表，先到「状态」页连接并授权。</string>
+    <string name="profile_title">隔离空间</string>
+    <string name="profile_explain">用 shi 的 shell 能力建一个独立用户：建用户 → 设为资料所有者 → 把本应用装进去。\n代价：部分系统会禁止在已有设备所有者时创建，失败信息会显示在下面。</string>
+    <string name="settings_appearance">外观</string>
+    <string name="settings_glass">液态玻璃</string>
+    <string name="settings_glass_hint">在支持的设备上给卡片加折射效果；低版本自动降级。</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

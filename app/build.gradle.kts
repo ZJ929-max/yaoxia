@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     // AGP 9 起 Kotlin 支持内置，不再需要 org.jetbrains.kotlin.android
     id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 val versionProperties = Properties().apply {
@@ -24,6 +25,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -60,6 +62,11 @@ dependencies {
     implementation("dev.rikka.shizuku:provider:13.0.0")
 
     // 界面：Material 3 + AppCompat
-    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
+
+    // Compose（BOM 统一版本）
+    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.activity:activity-compose:1.9.3")
 }
