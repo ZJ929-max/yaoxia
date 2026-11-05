@@ -11,7 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -80,6 +86,13 @@ fun SandboxApp(state: AppState) {
         stringResource(R.string.tab_settings)
     )
 
+    val icons = listOf(
+        Icons.Filled.Home,
+        Icons.Filled.List,
+        Icons.Filled.Lock,
+        Icons.Filled.Settings
+    )
+
     Scaffold(
         topBar = { TopAppBar(title = { Text(titles[tab]) }) },
         bottomBar = {
@@ -88,7 +101,7 @@ fun SandboxApp(state: AppState) {
                     NavigationBarItem(
                         selected = tab == index,
                         onClick = { tab = index },
-                        icon = {},
+                        icon = { Icon(icons[index], contentDescription = title) },
                         label = { Text(title) }
                     )
                 }
@@ -209,7 +222,8 @@ private fun AppsScreen(state: AppState) {
                         }
                         Switch(
                             checked = app.frozen,
-                            onCheckedChange = { state.toggleFrozen(app) }
+                            enabled = app.packageName !in state.busyPackages,
+                            onCheckedChange = { target -> state.setFrozen(app, target) }
                         )
                     }
                     Divider()

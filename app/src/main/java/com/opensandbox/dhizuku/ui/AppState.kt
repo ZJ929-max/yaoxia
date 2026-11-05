@@ -46,6 +46,7 @@ class AppState(private val context: Context) {
     var busy by mutableStateOf(false)
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
+    var busyPackages by mutableStateOf<Set<String>>(emptySet())
 
     data class ChannelUi(val name: String, val available: Boolean)
     data class AppUi(
@@ -227,19 +228,29 @@ class AppState(private val context: Context) {
         })
     }
 
-    fun toggleFrozen(app: AppUi) {
+    /** 目标值由开关回调给出，不再用「取反当前值」——避免连点/刷新延迟导致的反向操作。 */
+    fun setFrozen(app: AppUi, target: Boolean) {
         val policy = control ?: return
-        val target = !app.frozen
+        if (app.packageName in busyPackages) return
+
+        busyPackages = busyPackages + app.packageName
         async.execute({ policy.setFrozen(app.packageName, target) }, { outcome ->
-            status = if (outcome.isSuccess) {
-                context.getString(
+            busyPackages = busyPackages - app.packageName
+            if (outcome.isSuccess) {
+                // 先本地更新，界面立刻反映；随后再从系统读一遍校准
+                apps = apps.map {
+                    if (it.packageName == app.packageName) it.copy(frozen = target) else it
+                }
+                status = context.getString(
                     if (target) R.string.toast_frozen else R.string.toast_unfrozen,
                     app.label
                 )
+                refreshApps()
             } else {
-                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                status = context.getString(
+                    R.string.toast_action_failed, outcome.errorOrNull().orEmpty()
+                )
             }
-            refreshApps()
         })
     }
 
