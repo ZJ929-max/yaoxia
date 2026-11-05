@@ -48,8 +48,13 @@ android {
 
     buildTypes {
         release {
-            // 保持类名不被混淆（如需反射加载）
-            isMinifyEnabled = false
+            // 开 R8：压体积、去无用代码；清单里声明的组件 R8 会自动保留
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = signingConfigs.getByName("release")
         }
     }

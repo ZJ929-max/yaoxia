@@ -44,6 +44,18 @@ fun providers(context: Context) = listOf(
 - 不同能力可落到不同提供方（策略走 she、shell 走 shi）——即混合调用；
 - 新增一家（新的权限授予器 / 新的 shell），只加一行。
 
+## 构建（开发期）
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
+bash tools/build-dev.sh        # 输出 builds/OpenSandbox-dev.apk，不涨版本号
+bash tools/release.sh patch    # 一整套功能做完才用，0.5.3 → 0.5.4
+```
+
+发布构建开了 R8（代码压缩 + 资源裁剪）：31.4 MB → **4.8 MB**。
+`app/proguard-rules.pro` 里保留了 Dhizuku / Shizuku / Miuix / Backdrop 的类，
+并对 Dhizuku 引用的隐藏类加了 `-dontwarn`。
+
 ## 构建
 
 ```bash
