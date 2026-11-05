@@ -111,6 +111,14 @@
 
     <string name="profile_kind_note">当前隔离空间是「完整次级用户」，不是工作资料：系统每次只能有一个前台用户，所以打开应用会切换用户、本应用会被挂起。这是 Android 的硬限制，第三方应用无法创建工作资料。</string>
 
+    <string name="filter_all">全部</string>
+    <string name="filter_installed">已装入</string>
+    <string name="filter_not_installed">未装入</string>
+    <string name="settings_about">关于</string>
+    <string name="about_package">包名：%1$s</string>
+    <string name="about_managers">已装管理器：%1$s</string>
+    <string name="about_shell">当前 shell 通道：%1$s</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

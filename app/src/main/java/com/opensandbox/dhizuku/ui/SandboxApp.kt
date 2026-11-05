@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -357,6 +358,22 @@ private fun ProfileScreen(state: AppState) {
             }
         }
 
+        var filter by rememberSaveable { mutableIntStateOf(0) }
+
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(R.string.filter_all, R.string.filter_installed, R.string.filter_not_installed)
+                .forEachIndexed { index, res ->
+                    FilterChip(
+                        selected = filter == index,
+                        onClick = { filter = index },
+                        label = { Text(stringResource(res)) }
+                    )
+                }
+        }
+
         if (state.profileUserId == null) {
             Text(
                 stringResource(R.string.profile_none),
@@ -367,7 +384,17 @@ private fun ProfileScreen(state: AppState) {
         }
 
         LazyColumn(Modifier.fillMaxSize()) {
-            items(state.apps, key = { it.packageName }) { app ->
+            items(
+                state.apps.filter { app ->
+                    val installed = app.packageName in state.profileApps
+                    when (filter) {
+                        1 -> installed
+                        2 -> !installed
+                        else -> true
+                    }
+                },
+                key = { it.packageName }
+            ) { app ->
                 val installed = app.packageName in state.profileApps
                 Column {
                     Row(
@@ -475,7 +502,23 @@ private fun SettingsScreen(state: AppState) {
         )
 
         Text(
+            stringResource(R.string.settings_about),
+            style = MaterialTheme.typography.titleSmall
+        )
+        Text(
             stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            stringResource(R.string.about_package, context.packageName),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            stringResource(R.string.about_managers, state.installedManagers().joinToString(", ")),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            stringResource(R.string.about_shell, state.shellLabel.ifEmpty { "未解析" }),
             style = MaterialTheme.typography.bodySmall
         )
     }
