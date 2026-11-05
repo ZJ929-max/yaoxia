@@ -70,6 +70,9 @@
     <string name="log_path">日志文件：%1$s</string>
     <string name="log_none">暂无（还没有崩溃记录）</string>
 
+    <string name="apps_search">搜索应用</string>
+    <string name="apps_uninstall_block">禁止卸载</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

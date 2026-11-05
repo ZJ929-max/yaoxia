@@ -36,6 +36,7 @@ class AppState(private val context: Context) {
 
     private var delegation: DelegationService? = null
     private var control: AppControl? = null
+    private var policyChannels: List<PolicyChannel> = emptyList()
     private var shell: ShellChannel? = null
 
     var status by mutableStateOf(context.getString(R.string.status_connecting))
@@ -129,7 +130,9 @@ class AppState(private val context: Context) {
                 )
                 return@execute
             }
-            control = PolicyAppControl(outcome.valueOrNull()!!)
+            val primary = outcome.valueOrNull()!!
+            policyChannels = router.available(context, PolicyChannel::class.java)
+            control = PolicyAppControl(primary)
             resolveShell()
             loadScopes()
         })
@@ -230,11 +233,11 @@ class AppState(private val context: Context) {
 
     /** 目标值由开关回调给出，不再用「取反当前值」——避免连点/刷新延迟导致的反向操作。 */
     fun setFrozen(app: AppUi, target: Boolean) {
-        val policy = control ?: return
+        if (control == null) return
         if (app.packageName in busyPackages) return
 
         busyPackages = busyPackages + app.packageName
-        async.execute({ policy.setFrozen(app.packageName, target) }, { outcome ->
+        async.execute({ withPolicyFallback { it.setFrozen(app.packageName, target) } }, { outcome ->
             busyPackages = busyPackages - app.packageName
             if (outcome.isSuccess) {
                 // 先本地更新，界面立刻反映；随后再从系统读一遍校准
@@ -254,10 +257,21 @@ class AppState(private val context: Context) {
         })
     }
 
+    /** 一个通道失败就换下一个（she → dhi → …），这是"智能调用"的落地。 */
+    private fun withPolicyFallback(action: (PolicyChannel) -> Outcome<Unit>): Outcome<Unit> {
+        var last: Outcome<Unit> = Outcome.fail("没有可用的策略通道")
+        for (channel in policyChannels) {
+            val result = action(channel)
+            if (result.isSuccess) return result
+            last = result
+        }
+        return last
+    }
+
     fun toggleUninstallBlock(app: AppUi) {
-        val policy = control ?: return
+        if (control == null) return
         val target = !app.uninstallBlocked
-        async.execute({ policy.setUninstallBlocked(app.packageName, target) }, { outcome ->
+        async.execute({ withPolicyFallback { it.setUninstallBlocked(app.packageName, target) } }, { outcome ->
             status = if (outcome.isSuccess) {
                 context.getString(
                     if (target) R.string.toast_uninstall_blocked else R.string.toast_uninstall_allowed,
@@ -330,7 +344,7 @@ class AppState(private val context: Context) {
         "com.hamondev.shevery" to "she",
         "moe.shizuku.privileged.api" to "shi",
         "com.rosan.dhizuku" to "dhi",
-        "frb.axeron.manager" to "ax"
+        "frb.axeron.manager" to "ax(接口受保护)"
     )
 
     fun installedManagers(): List<String> = managers.mapNotNull { (pkg, label) ->

@@ -12,6 +12,15 @@ class CapabilityRouter(private val providers: List<CapabilityProvider>) {
 
     fun providers(): List<CapabilityProvider> = providers.toList()
 
+    /** 按优先级列出所有可用通道，失败时可依次重试。 */
+    fun <T : Any> available(context: Context, channelType: Class<T>): List<T> =
+        providers.filter { channelType.isInstance(it) }
+            .filter { provider ->
+                val availability = provider.isAvailable(context)
+                availability.isSuccess && availability.valueOrNull() == true
+            }
+            .map { channelType.cast(it) }
+
     /** 解析出第一个可用的通道；全部不可用时返回失败原因。 */
     fun <T : Any> resolve(context: Context, channelType: Class<T>): Outcome<T> {
         val unavailable = mutableListOf<String>()

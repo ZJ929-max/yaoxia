@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -28,6 +29,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -181,6 +184,12 @@ private fun StatusScreen(state: AppState) {
 
 @Composable
 private fun AppsScreen(state: AppState) {
+    var query by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+    val visible = state.apps.filter {
+        query.isBlank() || it.label.contains(query, ignoreCase = true) ||
+            it.packageName.contains(query, ignoreCase = true)
+    }
+
     Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -188,7 +197,7 @@ private fun AppsScreen(state: AppState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                stringResource(R.string.apps_count, state.apps.size),
+                stringResource(R.string.apps_count, visible.size),
                 style = MaterialTheme.typography.bodySmall
             )
             TextButton(onClick = state::refreshApps) {
@@ -196,7 +205,16 @@ private fun AppsScreen(state: AppState) {
             }
         }
 
-        if (state.apps.isEmpty()) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            singleLine = true,
+            placeholder = { Text(stringResource(R.string.apps_search)) },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        )
+
+        if (visible.isEmpty()) {
             Text(
                 stringResource(R.string.apps_empty),
                 Modifier.padding(16.dp),
@@ -206,7 +224,7 @@ private fun AppsScreen(state: AppState) {
         }
 
         LazyColumn(Modifier.fillMaxSize()) {
-            items(state.apps, key = { it.packageName }) { app ->
+            items(visible, key = { it.packageName }) { app ->
                 Column(Modifier.fillMaxWidth()) {
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -218,6 +236,14 @@ private fun AppsScreen(state: AppState) {
                                 app.packageName,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(onClick = { state.toggleUninstallBlock(app) }) {
+                            Icon(
+                                Icons.Filled.Lock,
+                                contentDescription = stringResource(R.string.apps_uninstall_block),
+                                tint = if (app.uninstallBlocked) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outline
                             )
                         }
                         Switch(
