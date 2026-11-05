@@ -50,6 +50,7 @@ class AppState(private val context: Context) {
     var profileApps by mutableStateOf<List<String>>(emptyList())
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
+    var shellLabel by mutableStateOf("")
 
     var busyPackages by mutableStateOf<Set<String>>(emptySet())
 
@@ -145,6 +146,7 @@ class AppState(private val context: Context) {
     private fun resolveShell() {
         async.execute({ router.resolve(context, ShellChannel::class.java) }, { outcome ->
             shell = outcome.valueOrNull()
+            shellLabel = shell?.describe().orEmpty()
         })
     }
 
@@ -360,6 +362,7 @@ class AppState(private val context: Context) {
         appendLine("installed=${installedManagers().joinToString(",")}")
         appendLine(session)
         channels.forEach { appendLine("${it.name} available=${it.available}") }
+        appendLine("shell in use=$shellLabel")
         appendLine(status)
         appendLine("log=${logFile()?.absolutePath ?: "无"}")
     }

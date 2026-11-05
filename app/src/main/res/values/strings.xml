@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OpenSandbox</string>
+    <string name="app_name">妖壶</string>
     <string name="version_format">v%1$s</string>
 
     <string name="button_connect">① 连接并授权</string>
