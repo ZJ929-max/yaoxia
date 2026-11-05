@@ -18,6 +18,7 @@ import com.opensandbox.dhizuku.platform.CapabilityProvider
 import com.opensandbox.dhizuku.platform.CapabilityRouter
 import com.opensandbox.dhizuku.platform.ProviderRegistry
 import com.opensandbox.dhizuku.provision.ProfileApps
+import com.opensandbox.dhizuku.provision.DhizukuProfileProvisioner
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
 import com.opensandbox.dhizuku.provision.SystemProfileProvisioner
 
@@ -323,6 +324,28 @@ class AppState(private val context: Context) {
 
     /** 兜底：用 shi 的 shell 建（部分 ROM 上系统流程被禁时可用）。 */
     fun createProfile() {
+        // 设备已有 device owner 时，shell 建 managed profile 必被
+        // no_add_managed_profile 拒绝（连 Shizuku 的 shell 也不行）。
+        // 所以先试「借 DO 的 binder」这条路，它不需要 shell 通道。
+        if (delegation != null) {
+            status = context.getString(R.string.status_profile_creating)
+            async.execute({
+                DhizukuProfileProvisioner(context)
+                    .ensureManagedProfile(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
+            }, { outcome ->
+                status = if (outcome.isSuccess) {
+                    val info = outcome.valueOrNull()!!
+                    context.getString(
+                        if (info.createdNow) R.string.status_profile_created else R.string.status_profile_exists,
+                        info.userId, info.name
+                    )
+                } else {
+                    context.getString(R.string.status_profile_failed, outcome.errorOrNull().orEmpty())
+                }
+            })
+            return
+        }
+
         val channel = shell ?: run {
             status = context.getString(R.string.status_shell_unavailable, "")
             return
