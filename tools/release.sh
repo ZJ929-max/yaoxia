@@ -15,8 +15,19 @@ fi
 
 export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-arm64}"
 export ANDROID_HOME="${ANDROID_HOME:-/opt/android-sdk}"
-/opt/gradle-8.7/bin/gradle --no-daemon assembleRelease
+
+# 不写死任何一台机器的 Gradle 路径：优先 wrapper，其次环境变量，最后常见位置
+if [ -x ./gradlew ]; then
+  GRADLE_CMD="./gradlew"
+elif [ -n "${GRADLE_HOME:-}" ] && [ -x "$GRADLE_HOME/bin/gradle" ]; then
+  GRADLE_CMD="$GRADLE_HOME/bin/gradle"
+else
+  GRADLE_CMD="$(command -v gradle || true)"
+fi
+[ -n "${GRADLE_CMD:-}" ] || { echo "找不到 gradle：请先 ./gradlew 或设置 GRADLE_HOME" >&2; exit 1; }
+$GRADLE_CMD --no-daemon assembleRelease
 
 OUT="OpenSandbox-${NAME}.apk"
-cp app/build/outputs/apk/release/app-release.apk "../${OUT}"
-echo "已输出：$(cd .. && pwd)/${OUT}  (versionName=${NAME}, versionCode=${CODE})"
+mkdir -p ../builds
+cp app/build/outputs/apk/release/app-release.apk "../builds/${OUT}"
+echo "已输出：$(cd .. && pwd)/builds/${OUT}  (versionName=${NAME}, versionCode=${CODE})"

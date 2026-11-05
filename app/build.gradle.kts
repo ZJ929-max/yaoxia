@@ -1,25 +1,28 @@
 import java.util.Properties
 
+plugins {
+    // AGP 9 起 Kotlin 支持内置，不再需要 org.jetbrains.kotlin.android
+    id("com.android.application")
+}
+
 val versionProperties = Properties().apply {
     rootProject.file("version.properties").inputStream().use { load(it) }
 }
 
-plugins { id("com.android.application") }
-
 android {
     namespace = "com.opensandbox.dhizuku"
-    compileSdk = 34
+    compileSdk = 37
+    buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "com.opensandbox.dhizuku"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 37
         versionCode = versionProperties.getProperty("versionCode").toInt()
         versionName = versionProperties.getProperty("versionName")
     }
 
     buildFeatures {
-        aidl = true
         buildConfig = true
     }
 
@@ -30,20 +33,20 @@ android {
 
     signingConfigs {
         create("release") {
-            val ks = rootProject.file("keystore.properties")
-            if (ks.exists()) {
-                val p = Properties().apply { ks.inputStream().use { this.load(it) } }
-                storeFile = rootProject.file(p.getProperty("storeFile"))
-                storePassword = p.getProperty("storePassword")
-                keyAlias = p.getProperty("keyAlias")
-                keyPassword = p.getProperty("keyPassword")
+            val keystore = rootProject.file("keystore.properties")
+            if (keystore.exists()) {
+                val props = Properties().apply { keystore.inputStream().use { load(it) } }
+                storeFile = rootProject.file(props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
             }
         }
     }
 
     buildTypes {
         release {
-            // 保持类名不被混淆：Dhizuku 会用类名反射加载 RemoteDpmService
+            // 保持类名不被混淆（如需反射加载）
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
         }
@@ -51,8 +54,8 @@ android {
 }
 
 dependencies {
-    // dhi / she 的协议客户端
     implementation("io.github.iamr0s:Dhizuku-API:2.5.4")
-    // shi 的官方 SDK
     implementation("dev.rikka.shizuku:api:13.0.0")
+    // 清单里声明的 rikka.shizuku.ShizukuProvider 在这个包里；只加 api 会导致启动即崩
+    implementation("dev.rikka.shizuku:provider:13.0.0")
 }

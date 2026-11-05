@@ -5,6 +5,7 @@
 
     <string name="button_connect">① 连接并授权</string>
     <string name="button_scopes">② 申请委派范围</string>
+    <string name="button_create_profile">④ 创建隔离空间</string>
     <string name="button_refresh">③ 刷新应用列表</string>
     <string name="button_copy_diagnostics">复制诊断信息</string>
 
@@ -33,6 +34,17 @@
     <string name="channel_available">✓ 可用</string>
     <string name="channel_unavailable">✗ 不可用</string>
     <string name="status_no_policy_channel">没有可用的策略通道：%1$s</string>
+
+    <string name="status_profile_creating">正在创建隔离空间（建用户 → 设 Profile Owner → 装入本应用）…</string>
+    <string name="status_profile_failed">创建隔离空间失败：%1$s</string>
+    <string name="status_profile_created">已创建隔离空间：user %1$d（%2$s），本应用已装入</string>
+    <string name="status_profile_exists">已存在隔离空间：user %1$d（%2$s）</string>
+    <string name="status_shell_unavailable">shell 通道不可用：%1$s</string>
+
+    <string name="crash_title">出错了：%1$s</string>
+    <string name="crash_copy">复制</string>
+    <string name="crash_close">关闭</string>
+    <string name="crash_copied">已复制</string>
 
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
