@@ -11,5 +11,8 @@ interface ShellChannel : CapabilityProvider {
 
     fun execute(vararg command: String): Outcome<String>
 
+    /** 不等待结果，避免长命令把工作线程占死。 */
+    fun executeDetached(vararg command: String): Outcome<Unit>
+
     fun requestPermission(): Outcome<Unit>
 }

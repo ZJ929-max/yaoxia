@@ -37,6 +37,9 @@ class ShizukuShellChannel(context: Context) : CapabilityProvider, ShellChannel {
     override fun execute(vararg command: String): Outcome<String> =
         ShizukuProcessRunner.run(command)
 
+    override fun executeDetached(vararg command: String): Outcome<Unit> =
+        ShizukuProcessRunner.start(command)
+
     private fun installed(): Boolean = runCatching {
         appContext.packageManager.getPackageInfo(SHIZUKU_PACKAGE, 0)
     }.isSuccess

@@ -419,8 +419,11 @@ class AppState(private val context: Context) {
     }
 
     fun launchInProfile(packageName: String) {
-        val channel = shell ?: return
         val userId = profileUserId ?: return
+        val channel = shell ?: return
+
+        // 关键：am start --user 会一直等目标用户启动，必须"发出去就返回"，
+        // 否则唯一的工作线程会被占死，界面看起来像系统卡死。
         async.execute({
             val resolved = channel.execute(
                 "sh", "-c", "cmd package resolve-activity --user $userId --brief $packageName"
@@ -429,7 +432,7 @@ class AppState(private val context: Context) {
                 .map { it.trim() }
                 .lastOrNull { it.contains("/") }
                 ?: error("找不到启动入口：$packageName")
-            channel.execute("sh", "-c", "am start --user $userId -n $component")
+            channel.executeDetached("sh", "-c", "am start --user $userId -n $component")
         }, { outcome ->
             status = if (outcome.isSuccess) {
                 context.getString(R.string.profile_launched, packageName)
@@ -439,6 +442,20 @@ class AppState(private val context: Context) {
         })
     }
 
+    fun removeFromProfile(packageName: String) {
+        val channel = shell ?: return
+        val userId = profileUserId ?: return
+        async.execute({
+            channel.execute("sh", "-c", "pm uninstall --user $userId $packageName")
+        }, { outcome ->
+            status = if (outcome.isSuccess) {
+                context.getString(R.string.profile_removed, packageName, userId)
+            } else {
+                context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+            }
+            refreshProfileApps()
+        })
+    }
 
     fun shutdown() = async.shutdown()
 

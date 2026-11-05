@@ -13,6 +13,12 @@ internal object ShizukuProcessRunner {
 
     private const val TIMEOUT_MILLIS = 30_000L
 
+    /** 发出去就返回：适合 am start 这类会一直等目标用户启动的命令。 */
+    fun start(command: Array<out String>): Outcome<Unit> = Outcome.catching {
+        Shizuku.newProcess(command, null, null)
+        Unit
+    }
+
     fun run(command: Array<out String>): Outcome<String> = Outcome.catching {
         val process = Shizuku.newProcess(command, null, null)
 

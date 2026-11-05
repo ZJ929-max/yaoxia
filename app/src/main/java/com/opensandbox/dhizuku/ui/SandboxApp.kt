@@ -322,6 +322,9 @@ private fun ProfileScreen(state: AppState) {
                             TextButton(onClick = { state.launchInProfile(app.packageName) }) {
                                 Text(stringResource(R.string.profile_open))
                             }
+                            TextButton(onClick = { state.removeFromProfile(app.packageName) }) {
+                                Text(stringResource(R.string.profile_remove))
+                            }
                         } else {
                             TextButton(onClick = { state.installIntoProfile(app.packageName) }) {
                                 Text(stringResource(R.string.profile_install))

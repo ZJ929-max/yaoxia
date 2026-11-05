@@ -38,6 +38,11 @@ class SheveryShellChannel(context: Context) : CapabilityProvider, ShellChannel {
         check(ensureBinderInjected()) { "未能从 she 取得 shell binder" }
     }
 
+    override fun executeDetached(vararg command: String): Outcome<Unit> {
+        if (!ensureBinderInjected()) return Outcome.fail("she 的 shell binder 不可用")
+        return ShizukuProcessRunner.start(command)
+    }
+
     override fun execute(vararg command: String): Outcome<String> {
         if (!ensureBinderInjected()) {
             return Outcome.fail("she 的 shell binder 不可用")
