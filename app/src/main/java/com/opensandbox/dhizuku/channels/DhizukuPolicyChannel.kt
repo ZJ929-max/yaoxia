@@ -5,6 +5,8 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Handler
+import android.os.Looper
 import com.opensandbox.dhizuku.SandboxAdmin
 import com.opensandbox.dhizuku.core.Outcome
 import com.opensandbox.dhizuku.delegation.DelegationService
@@ -63,14 +65,16 @@ class DhizukuPolicyChannel(
     }
 
     override fun requestAuthorization(activity: Activity, callback: (Outcome<Boolean>) -> Unit) {
+        // AIDL 回调发生在 binder 线程，绝不能直接改 UI
+        val main = Handler(Looper.getMainLooper())
         try {
             Dhizuku.requestPermission(object : DhizukuRequestPermissionListener() {
                 override fun onRequestPermission(grantResult: Int) {
-                    callback(Outcome.ok(grantResult == PackageManager.PERMISSION_GRANTED))
+                    main.post { callback(Outcome.ok(grantResult == PackageManager.PERMISSION_GRANTED)) }
                 }
             })
         } catch (throwable: Throwable) {
-            callback(Outcome.fail(throwable))
+            main.post { callback(Outcome.fail(throwable)) }
         }
     }
 
@@ -79,7 +83,13 @@ class DhizukuPolicyChannel(
     }
 
     override fun requestScopes(scopes: Collection<String>): Outcome<Set<String>> {
-        Outcome.catching { Dhizuku.setDelegatedScopes(scopes.toTypedArray()) }
+        // setDelegatedScopes 是"整体替换"：先并上已有范围，别把用户手工授的抹掉
+        val merged = (grantedScopes().valueOrNull().orEmpty() + scopes).toTypedArray()
+
+        val applied = Outcome.catching { Dhizuku.setDelegatedScopes(merged) }
+        if (!applied.isSuccess) {
+            return Outcome.fail(applied.errorOrNull().orEmpty())
+        }
         return grantedScopes()
     }
 
@@ -91,8 +101,12 @@ class DhizukuPolicyChannel(
         policyManager?.isPackageSuspended(component, packageName) ?: false
     }
 
-    override fun setFrozen(packageName: String, frozen: Boolean): Outcome<Unit> = perform { component ->
-        policyManager?.setPackagesSuspended(component, arrayOf(packageName), frozen)
+    override fun setFrozen(packageName: String, frozen: Boolean): Outcome<Unit> {
+        val result = perform { component ->
+            val failed = policyManager?.setPackagesSuspended(component, arrayOf(packageName), frozen)
+            check(failed == null || failed.isEmpty()) { "系统未处理：${failed?.joinToString()}" }
+        }
+        return result
     }
 
     override fun isUninstallBlocked(packageName: String): Boolean = query { component ->
@@ -109,8 +123,13 @@ class DhizukuPolicyChannel(
      * 委派身份下 admin 参数的要求因实现方而异：
      * 有的要求传调用方自己的 admin，有的只接受 null。先带 admin，再退到 null。
      */
+    private fun ownerOrOwnAdmin(): ComponentName? =
+        runCatching { Dhizuku.getOwnerComponent(appContext) }.getOrNull() ?: admin
+
     private fun perform(action: (ComponentName?) -> Unit): Outcome<Unit> {
-        val first = runCatching { action(admin) }
+        if (policyManager == null) return Outcome.fail("DevicePolicyManager 不可用")
+
+        val first = runCatching { action(ownerOrOwnAdmin()) }
         if (first.isSuccess) return Outcome.ok(Unit)
 
         val second = runCatching { action(null) }
@@ -125,7 +144,7 @@ class DhizukuPolicyChannel(
     }
 
     private fun query(action: (ComponentName?) -> Boolean): Boolean {
-        runCatching { action(admin) }.getOrNull()?.let { return it }
+        runCatching { action(ownerOrOwnAdmin()) }.getOrNull()?.let { return it }
         return runCatching { action(null) }.getOrDefault(false)
     }
 }
