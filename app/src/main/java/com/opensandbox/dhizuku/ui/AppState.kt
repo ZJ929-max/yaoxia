@@ -397,26 +397,18 @@ class AppState(private val context: Context) {
             status = context.getString(R.string.status_shell_unavailable, "")
             return
         }
-        async.execute({
-            val users = channel.execute("sh", "-c", "pm list users").valueOrNull().orEmpty()
-            val id = Regex("""UserInfo\{(\d+):${ShellProfileProvisioner.DEFAULT_PROFILE_NAME}:""")
-                .find(users)?.groupValues?.get(1)?.toIntOrNull()
-                ?: error("还没有隔离空间，先在上面创建")
+        val profile = ProfileApps(channel)
 
-            val listing = channel.execute("sh", "-c", "pm list packages --user $id")
-                .valueOrNull().orEmpty()
-            val packages = listing.lineSequence()
-                .map { it.removePrefix("package:").trim() }
-                .filter { it.isNotEmpty() }
-                .sorted()
-                .toList()
-            Outcome.ok(ProfileSnapshot(id, packages))
+        async.execute({
+            val userId = profile.findUser(ShellProfileProvisioner.DEFAULT_PROFILE_NAME)
+                .valueOrNull() ?: error("还没有隔离空间，先点上面的按钮建一个")
+            val installed = profile.installed(userId)
+            if (!installed.isSuccess) error(installed.errorOrNull().orEmpty())
+            Outcome.ok(ProfileSnapshot(userId, installed.valueOrNull().orEmpty().sorted()))
         }, { outcome ->
             val snapshot = outcome.valueOrNull()
             if (snapshot == null) {
-                status = context.getString(
-                    R.string.toast_action_failed, outcome.errorOrNull().orEmpty()
-                )
+                status = context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
                 return@execute
             }
             profileUserId = snapshot.userId
@@ -444,17 +436,18 @@ class AppState(private val context: Context) {
         val userId = profileUserId ?: return
         val channel = shell ?: return
 
-        // 关键：am start --user 会一直等目标用户启动，必须"发出去就返回"，
-        // 否则唯一的工作线程会被占死，界面看起来像系统卡死。
+        // am start --user 会等目标用户启动，必须"发出去就返回"，否则工作线程被占死。
         async.execute({
-            val resolved = channel.execute(
-                "sh", "-c", "cmd package resolve-activity --user $userId --brief $packageName"
-            ).valueOrNull().orEmpty()
-            val component = resolved.lineSequence()
-                .map { it.trim() }
-                .lastOrNull { it.contains("/") }
-                ?: error("找不到启动入口：$packageName")
-            channel.executeDetached("sh", "-c", "am start --user $userId -n $component")
+            val component = resolveComponent(channel, userId, packageName)
+            if (component != null) {
+                channel.executeDetached("sh", "-c", "am start --user $userId -n $component")
+            } else {
+                // 解析不到入口（有些应用在副用户里 launcher 被禁用）→ 用 monkey 走 LAUNCHER 意图
+                channel.executeDetached(
+                    "sh", "-c",
+                    "monkey -p $packageName -c android.intent.category.LAUNCHER --user $userId 1"
+                )
+            }
         }, { outcome ->
             status = if (outcome.isSuccess) {
                 context.getString(R.string.profile_launched, packageName)
@@ -462,6 +455,22 @@ class AppState(private val context: Context) {
                 context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
             }
         })
+    }
+
+    /** 两种 --user 位置都试一遍；都拿不到就返回 null，交给 monkey 兜底。 */
+    private fun resolveComponent(channel: ShellChannel, userId: Int, packageName: String): String? {
+        val commands = listOf(
+            "cmd package resolve-activity --brief --user $userId $packageName",
+            "cmd package resolve-activity --user $userId --brief $packageName"
+        )
+        for (command in commands) {
+            val output = channel.execute("sh", "-c", command).valueOrNull().orEmpty()
+            val component = output.lineSequence()
+                .map { it.trim() }
+                .lastOrNull { it.contains("/") && !it.startsWith("priority=") }
+            if (component != null) return component
+        }
+        return null
     }
 
     /** 从隔离空间切回主空间（0 号用户）。同样"发出去不等"。 */

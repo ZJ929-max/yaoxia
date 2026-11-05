@@ -6,6 +6,11 @@ import com.opensandbox.dhizuku.core.Outcome
 /** 对某个隔离用户里的应用做增删查启——全部走 shell（见 ShellCommands）。 */
 class ProfileApps(private val shell: ShellChannel) {
 
+    private val SYSTEM_PREFIXES = listOf(
+        "android", "com.android", "com.google", "com.miui", "com.xiaomi",
+        "com.qualcomm", "com.mediatek", "com.hamondev", "com.rosan", "moe.shizuku"
+    )
+
     private val userPattern = Regex("UserInfo\\{(\\d+):([^:}]+):")
 
     /** 按名字找已存在的隔离用户（例如上次建好的 user 10）。 */
@@ -24,6 +29,7 @@ class ProfileApps(private val shell: ShellChannel) {
             .map { it.trim() }
             .filter { it.startsWith("package:") }
             .map { it.removePrefix("package:") }
+            .filterNot { isSystemPackage(it) }
             .toCollection(linkedSetOf())
     }
 
@@ -35,6 +41,10 @@ class ProfileApps(private val shell: ShellChannel) {
 
     fun launch(userId: Int, component: String): Outcome<Unit> =
         Outcome.catching { run(ShellCommands.launch(userId, component)) }
+
+    /** 粗略过滤系统应用：这些前缀基本覆盖 AOSP / Google / 小米 / 我们自己的管理器。 */
+    private fun isSystemPackage(packageName: String): Boolean =
+        SYSTEM_PREFIXES.any { packageName == it || packageName.startsWith("$it.") }
 
     private fun run(command: String): String {
         val result = shell.execute(ShellCommands.SHELL, ShellCommands.EXECUTE, command)

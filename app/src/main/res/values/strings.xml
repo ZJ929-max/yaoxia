@@ -73,7 +73,7 @@
     <string name="apps_search">搜索应用</string>
     <string name="apps_uninstall_block">禁止卸载</string>
 
-    <string name="profile_apps_count">隔离空间内有 %1$d 个包</string>
+    <string name="profile_apps_count">隔离空间内有 %1$d 个应用（已过滤系统包）</string>
     <string name="profile_installed">已装入 user %2$d：%1$s</string>
     <string name="profile_launched">已在隔离空间启动：%1$s</string>
     <string name="profile_refresh_apps">刷新已装应用</string>
