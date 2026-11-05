@@ -13,7 +13,8 @@ pkg = re.search(r"package: name='([^']+)'",
                 ).group(1)
 
 with zipfile.ZipFile(apk) as z:
-    dex = z.read("classes.dex")
+    # Compose 之后会是多 dex，必须把所有 classes*.dex 拼起来查
+    dex = b"".join(z.read(n) for n in z.namelist() if re.fullmatch(r"classes\d*\.dex", n))
 
 components, current = [], None
 for line in tree.splitlines():
