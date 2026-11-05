@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         state = AppState(this)
 
         setContent {
-            SandboxTheme(state.skin) {
+            SandboxTheme(state.skin, state.glassEnabled) {
                 SandboxApp(state)
             }
         }

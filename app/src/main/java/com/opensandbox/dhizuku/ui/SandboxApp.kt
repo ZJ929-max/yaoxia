@@ -37,6 +37,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +55,7 @@ import com.opensandbox.dhizuku.R
 
 /** 主题：只换配色，布局不变——所以"外观"和"玻璃"是两个独立开关。 */
 @Composable
-fun SandboxTheme(skin: Skin, content: @Composable () -> Unit) {
+fun SandboxTheme(skin: Skin, glassEnabled: Boolean, content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val base = if (dark) darkColorScheme() else lightColorScheme()
 
@@ -75,7 +76,11 @@ fun SandboxTheme(skin: Skin, content: @Composable () -> Unit) {
         }
     }
 
-    MaterialTheme(colorScheme = colors, content = content)
+    MaterialTheme(colorScheme = colors) {
+        SandboxSurface {
+            CompositionLocalProvider(LocalGlassEnabled provides glassEnabled, content = content)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,8 +136,8 @@ private fun StatusScreen(state: AppState) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            GlassCard(Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(state.status, style = MaterialTheme.typography.bodyMedium)
                     if (state.session.isNotEmpty()) {
                         Text(
@@ -146,8 +151,8 @@ private fun StatusScreen(state: AppState) {
         }
 
         item {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            GlassCard(Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(stringResource(R.string.section_channels), fontWeight = FontWeight.SemiBold)
                     state.channels.forEach { channel ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

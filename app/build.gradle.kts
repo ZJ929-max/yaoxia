@@ -65,10 +65,15 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
 
     // Compose（BOM 统一版本）
-    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-core")
+
+    // 小米 HyperOS 风格组件（Apache-2.0）
+    implementation("top.yukonga.miuix.kmp:miuix-ui:0.9.4")
+    // 液态玻璃（Apache-2.0）
+    implementation("io.github.kyant0:backdrop:2.0.1")
 
     // 小米风格组件 + 液态玻璃
     implementation("top.yukonga.miuix.kmp:miuix-ui:0.9.4")
