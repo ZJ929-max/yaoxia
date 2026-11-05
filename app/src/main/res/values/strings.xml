@@ -109,6 +109,8 @@
     <string name="dialog_confirm">继续</string>
     <string name="dialog_cancel">取消</string>
 
+    <string name="profile_kind_note">当前隔离空间是「完整次级用户」，不是工作资料：系统每次只能有一个前台用户，所以打开应用会切换用户、本应用会被挂起。这是 Android 的硬限制，第三方应用无法创建工作资料。</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

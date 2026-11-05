@@ -324,6 +324,11 @@ private fun ProfileScreen(state: AppState) {
                 stringResource(R.string.profile_explain),
                 style = MaterialTheme.typography.bodySmall
             )
+            Text(
+                stringResource(R.string.profile_kind_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SkinButton(onClick = state::createProfile) {
                     Text(stringResource(R.string.button_create_profile))
