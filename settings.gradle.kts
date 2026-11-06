@@ -18,3 +18,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "OpenSandbox"
 include(":app")
+include(":logic")

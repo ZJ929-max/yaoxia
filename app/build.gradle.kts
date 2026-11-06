@@ -67,6 +67,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":logic"))
     testImplementation("junit:junit:4.13.2")
     implementation("io.github.iamr0s:Dhizuku-API:2.5.4")
     implementation("dev.rikka.shizuku:api:13.0.0")
