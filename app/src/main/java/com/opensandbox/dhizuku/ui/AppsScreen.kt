@@ -72,14 +72,16 @@ internal fun AppsScreen(state: AppState) {
                 }) { Text(stringResource(R.string.apps_cancel_select)) }
             }
         } else {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                singleLine = true,
-                placeholder = { Text(stringResource(R.string.apps_search)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            )
+            GlassCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.apps_search)) },
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
 
         if (visible.isEmpty()) {
@@ -127,7 +129,7 @@ internal fun AppsScreen(state: AppState) {
                         }
 
                         Column(Modifier.weight(1f)) {
-                            Text(app.label, fontWeight = FontWeight.Medium)
+                            SkinText(app.label, fontWeight = FontWeight.Medium)
                             Text(
                                 app.packageName,
                                 style = MaterialTheme.typography.bodySmall,
@@ -171,7 +173,7 @@ internal fun AppsScreen(state: AppState) {
                             }
                         }
                     }
-                    Divider()
+                    SkinDivider()
                 }
             }
         }

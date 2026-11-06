@@ -20,7 +20,7 @@ import com.opensandbox.dhizuku.R
 @Composable
 internal fun StatusScreen(state: AppState) {
     if (state.busy) {
-        LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
+        SkinLinearProgress(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
     }
 
     LazyColumn(
@@ -32,7 +32,8 @@ internal fun StatusScreen(state: AppState) {
             GlassCard(Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(state.status, style = MaterialTheme.typography.bodyMedium)
-                    if (state.session.isNotEmpty()) {
+                    // status 文本本身已经带了会话信息，避免重复打印两遍
+                    if (state.session.isNotEmpty() && !state.status.contains("DeviceOwner")) {
                         Text(
                             state.session,
                             style = MaterialTheme.typography.bodySmall,

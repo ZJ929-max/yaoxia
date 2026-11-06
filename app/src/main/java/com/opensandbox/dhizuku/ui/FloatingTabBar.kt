@@ -28,10 +28,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.lens
-import com.kyant.backdrop.effects.vibrancy
 
 /**
  * 悬浮胶囊导航栏——照着 InstallerX Revived 的观感做：
@@ -60,15 +56,14 @@ fun FloatingTabBar(
                     Modifier.liquidGlass(
                         backdrop = backdrop!!,
                         shape = shape,
-                        blurRadius = 8.dp,
-                        lensRadius = 12.dp,
-                        lensOffset = 24.dp,
+                        blurRadius = 28.dp,
+                        tint = Color.White.copy(alpha = 0.08f),
                     )
                 } else {
                     Modifier.clip(shape).background(surface.copy(alpha = 0.88f))
                 }
             )
-            .background(Color.White.copy(alpha = if (glass) 0.10f else 0.04f), shape)
+            .background(Color.White.copy(alpha = if (glass) 0.04f else 0.03f), shape)
             .border(1.dp, Color.White.copy(alpha = 0.14f), shape),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,

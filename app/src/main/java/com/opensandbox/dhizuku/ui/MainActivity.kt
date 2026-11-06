@@ -17,10 +17,15 @@ class MainActivity : ComponentActivity() {
 
         FailureReporter.install(this)
         state = AppState(this)
+        when (intent.getStringExtra("skin")) {
+            "miui" -> state.skin = Skin.MIUI
+            "system" -> state.skin = Skin.SYSTEM
+            "material" -> state.skin = Skin.MATERIAL
+        }
 
         setContent {
             SandboxTheme(state.skin, state.glassEnabled) {
-                SandboxApp(state)
+                SandboxApp(state, intent.getIntExtra("tab", 0))
             }
         }
 

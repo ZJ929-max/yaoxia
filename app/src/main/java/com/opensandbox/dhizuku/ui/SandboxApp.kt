@@ -104,8 +104,8 @@ fun SandboxTheme(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SandboxApp(state: AppState) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+fun SandboxApp(state: AppState, initialTab: Int = 0) {
+    var tab by rememberSaveable { mutableIntStateOf(initialTab.coerceIn(0, 3)) }
     val titles =
         listOf(
             stringResource(R.string.tab_status),

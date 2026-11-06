@@ -58,7 +58,7 @@ internal fun ProfileScreen(state: AppState) {
         }
 
         if (state.profileBusy) {
-            LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
+            SkinLinearProgress(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
 
         var filter by rememberSaveable { mutableIntStateOf(0) }
@@ -105,7 +105,7 @@ internal fun ProfileScreen(state: AppState) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(app.label, fontWeight = FontWeight.Medium)
+                            SkinText(app.label, fontWeight = FontWeight.Medium)
                             Text(
                                 if (installed) {
                                     stringResource(R.string.profile_state_installed)
@@ -129,7 +129,7 @@ internal fun ProfileScreen(state: AppState) {
                             }
                         }
                     }
-                    Divider()
+                    SkinDivider()
                 }
             }
         }
