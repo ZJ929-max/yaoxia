@@ -43,6 +43,9 @@ val LocalGlassAlpha = staticCompositionLocalOf { 0.22f }
 /** 背景光晕强度，用户可调（0 ~ 1）。 */
 val LocalGlowStrength = staticCompositionLocalOf { 1f }
 
+/** 模糊半径（dp），用户可调。 */
+val LocalBlurRadius = staticCompositionLocalOf { 0f }
+
 /** 折射源：只有背景层（官方示例的做法）。玻璃元素都在层外，才能采到东西。 */
 internal val LocalBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
@@ -151,6 +154,7 @@ fun GlassCard(
 ) {
     val enabled = LocalGlassEnabled.current
     val backdrop = LocalBackdrop.current
+    val blurRadiusDp = LocalBlurRadius.current
 
     if (enabled && backdrop != null) {
         val surface = MaterialTheme.colorScheme.surface
@@ -165,6 +169,7 @@ fun GlassCard(
                             backdrop = backdrop,
                             shape = { shape },
                             effects = {
+                                if (blurRadiusDp > 0f) blur(blurRadiusDp.dp.toPx())
                                 lens(20.dp.toPx(), 24.dp.toPx(), chromaticAberration = true)
                             },
                             highlight = { com.kyant.backdrop.highlight.Highlight.Default.copy(alpha = 0.25f) },

@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
                 fontFamily = family,
                 glassAlpha = state.glassAlpha,
                 glowStrength = state.glowStrength,
+                blurRadius = state.blurRadius,
             ) {
                 SandboxApp(state, intent.getIntExtra("tab", 0))
             }

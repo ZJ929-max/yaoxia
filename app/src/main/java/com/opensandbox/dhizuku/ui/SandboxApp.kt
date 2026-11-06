@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,6 +68,7 @@ fun SandboxTheme(
     fontFamily: androidx.compose.ui.text.font.FontFamily? = null,
     glassAlpha: Float = 0.22f,
     glowStrength: Float = 1f,
+    blurRadius: Float = 0f,
     content: @Composable () -> Unit,
 ) {
     val dark = isSystemInDarkTheme()
@@ -103,6 +105,7 @@ fun SandboxTheme(
                 LocalGlassEnabled provides glassEnabled,
                 LocalGlassAlpha provides glassAlpha,
                 LocalGlowStrength provides glowStrength,
+                LocalBlurRadius provides blurRadius,
                 LocalFontFamily provides fontFamily,
                 LocalSkin provides skin,
                 content = content,
@@ -223,14 +226,34 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
             topBar = {
                 // 透明顶栏：否则会盖住 SandboxSurface 的背景光斑（梦幻泡泡的底色来源）
                 TopAppBar(
-                    title = { Text(titles[tab]) },
+                    title = {
+                        Text(
+                            if (tab == 1) stringResource(R.string.apps_count, state.apps.size)
+                            else titles[tab],
+                        )
+                    },
+                    actions = {
+                        if (tab == 1) {
+                            IconButton(onClick = { state.searchExpanded = true }) {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = stringResource(R.string.apps_search),
+                                )
+                            }
+                        }
+                    },
                     colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
                         containerColor = androidx.compose.ui.graphics.Color.Transparent,
                     ),
                 )
             },
         ) { padding ->
-            Column(Modifier.fillMaxSize().padding(padding)) {
+            Column(
+                Modifier.fillMaxSize().padding(
+                    if (tab == 1) PaddingValues(bottom = padding.calculateBottomPadding())
+                    else padding,
+                ),
+            ) {
                 when (tab) {
                     0 -> StatusScreen(state)
                     1 -> AppsScreen(state)

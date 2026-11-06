@@ -164,6 +164,10 @@ object UiPrefs {
     fun setGlassAlpha(context: Context, value: Float) =
         prefs(context).edit().putFloat(KEY_ALPHA, value.coerceIn(0.05f, 0.6f)).apply()
 
+    fun blur(context: Context): Float = prefs(context).getFloat("blur_radius", 0f)
+    fun setBlur(context: Context, value: Float) =
+        prefs(context).edit().putFloat("blur_radius", value.coerceIn(0f, 40f)).apply()
+
     fun glow(context: Context): Float = prefs(context).getFloat(KEY_GLOW, 1f)
     fun setGlow(context: Context, value: Float) =
         prefs(context).edit().putFloat(KEY_GLOW, value.coerceIn(0f, 1.5f)).apply()

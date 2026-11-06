@@ -1,6 +1,7 @@
 package com.opensandbox.dhizuku.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,16 +38,19 @@ import androidx.compose.ui.unit.dp
 import com.opensandbox.dhizuku.R
 
 /** 搜索框是浮层：列表从它下面滚过去，才能看到"透过去"的效果。 */
-private val HeaderHeight = 196.dp
+private val HeaderHeight = 200.dp
+
+/** 顶栏 + 状态栏高度：内容从这里开始，再往上交给渐变遮罩淡出。 */
+private val AppBarInset = 132.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun AppsScreen(state: AppState) {
-    var query by rememberSaveable { mutableStateOf("") }
+    val query = state.appsQuery
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var menuFor by remember { mutableStateOf<String?>(null) }
-    var searchExpanded by rememberSaveable { mutableStateOf(false) }
+    val searchExpanded = state.searchExpanded
     val searchFocus = remember { androidx.compose.ui.focus.FocusRequester() }
 
     val visible = state.apps.filter {
@@ -64,7 +68,7 @@ internal fun AppsScreen(state: AppState) {
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    top = if (searchExpanded) HeaderHeight else 72.dp,
+                    top = if (searchExpanded) HeaderHeight else AppBarInset,
                     bottom = 176.dp,
                 ),
             ) {
@@ -137,70 +141,44 @@ internal fun AppsScreen(state: AppState) {
             }
         }
 
+        // 顶部渐变遮罩：内容滚到这里逐渐淡出，而不是被一条硬线切断
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(AppBarInset + 32.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                            androidx.compose.ui.graphics.Color.Transparent,
+                        ),
+                    ),
+                ),
+        )
+
         // 浮层头部：折叠成右上角搜索按钮；点击展开并自动聚焦
         Column(Modifier.fillMaxWidth()) {
-            if (!searchExpanded) {
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        if (selecting) stringResource(R.string.apps_selected, selected.size)
-                        else stringResource(R.string.apps_count, visible.size),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Surface(
-                        shape = androidx.compose.foundation.shape.CircleShape,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.28f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.18f),
-                        ),
-                        modifier = Modifier.size(44.dp),
-                    ) {
-                        IconButton(onClick = { searchExpanded = true }) {
-                            Icon(
-                                Icons.Filled.Search,
-                                contentDescription = stringResource(R.string.apps_search),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                }
-            } else {
+            if (searchExpanded) {
                 GlassCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
                     Row(
                         Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
                     ) {
-                        Text(
-                            if (selecting) stringResource(R.string.apps_selected, selected.size)
-                            else stringResource(R.string.apps_count, visible.size),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (!selecting) {
-                                TextButton(onClick = { state.refreshApps() }) {
-                                    Text(stringResource(R.string.button_refresh))
-                                }
-                            }
-                            IconButton(onClick = {
-                                query = ""
-                                searchExpanded = false
-                            }) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                        IconButton(onClick = {
+                            state.appsQuery = ""
+                            state.searchExpanded = false
+                        }) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                     OutlinedTextField(
                         value = query,
-                        onValueChange = { query = it },
+                        onValueChange = { state.appsQuery = it },
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.apps_search)) },
                         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },

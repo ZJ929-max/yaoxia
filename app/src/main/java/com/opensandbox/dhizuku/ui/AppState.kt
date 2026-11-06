@@ -36,6 +36,9 @@ class AppState(private val context: Context) {
     var glassEnabled by mutableStateOf(true)
     var glassAlpha by mutableStateOf(UiPrefs.glassAlpha(context))
     var glowStrength by mutableStateOf(UiPrefs.glow(context))
+    var blurRadius by mutableStateOf(UiPrefs.blur(context))
+    var appsQuery by mutableStateOf("")
+    var searchExpanded by mutableStateOf(false)
     var font by mutableStateOf(FontPrefs.load(context))
     var harmonyReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.HARMONY))
     var notoReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.NOTO))
@@ -86,6 +89,11 @@ class AppState(private val context: Context) {
     fun applyGlassAlpha(value: Float) {
         glassAlpha = value
         UiPrefs.setGlassAlpha(context, value)
+    }
+
+    fun applyBlur(value: Float) {
+        blurRadius = value
+        UiPrefs.setBlur(context, value)
     }
 
     fun applyGlowStrength(value: Float) {

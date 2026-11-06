@@ -109,6 +109,12 @@ internal fun SettingsScreen(state: AppState) {
                 onValueChange = { state.applyGlassAlpha(it) },
                 valueRange = 0.05f..0.6f,
             )
+            Text("玻璃模糊  ${state.blurRadius.toInt()} dp", style = MaterialTheme.typography.bodySmall)
+            Slider(
+                value = state.blurRadius,
+                onValueChange = { state.applyBlur(it) },
+                valueRange = 0f..40f,
+            )
             Text("背景光晕  ${(state.glowStrength * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
             Slider(
                 value = state.glowStrength,
