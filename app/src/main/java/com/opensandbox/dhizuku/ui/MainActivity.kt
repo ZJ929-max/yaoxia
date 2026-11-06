@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
             "downloadnoto" -> state.downloadFont(DownloadableFont.NOTO)
             "selftest" -> state.runSelfTest()
         }
+        if (intent.getStringExtra("search") == "1") state.searchExpanded = true
         when (intent.getStringExtra("skin")) {
             "miui" -> state.skin = Skin.MIUI
             "system" -> state.skin = Skin.SYSTEM

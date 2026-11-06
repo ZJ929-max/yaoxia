@@ -73,13 +73,17 @@ internal fun AppsScreen(state: AppState) {
             LazyColumn(
                 Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    top = if (searchExpanded) HeaderHeight else AppBarInset,
+                    top = if (searchExpanded) AppBarInset + HeaderHeight else AppBarInset,
                     bottom = 176.dp,
                 ),
             ) {
                 items(visible, key = { it.packageName }) { app ->
                     val checked = app.packageName in selected
-                    Column(Modifier.fillMaxWidth()) {
+                    Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = if (searchExpanded) AppBarInset else 0.dp),
+        ) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -148,7 +152,11 @@ internal fun AppsScreen(state: AppState) {
 
 
         // 浮层头部：折叠成右上角搜索按钮；点击展开并自动聚焦
-        Column(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = if (searchExpanded) AppBarInset else 0.dp),
+        ) {
             if (searchExpanded) {
                 GlassCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
                     Row(

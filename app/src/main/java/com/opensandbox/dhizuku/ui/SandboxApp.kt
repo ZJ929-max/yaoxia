@@ -241,7 +241,7 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                         )
                     },
                     actions = {
-                        if (tab == 1) {
+                        if (tab == 1 && !state.searchExpanded) {
                             IconButton(onClick = { state.searchExpanded = true }) {
                                 Icon(
                                     Icons.Filled.Search,
