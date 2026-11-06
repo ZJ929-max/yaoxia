@@ -65,6 +65,11 @@ internal fun SettingsScreen(state: AppState) {
                 clipboard.setPrimaryClip(
                     android.content.ClipData.newPlainText("diagnostics", state.diagnosticsReport()),
                 )
+                android.widget.Toast.makeText(
+                    context,
+                    context.getString(R.string.toast_copied),
+                    android.widget.Toast.LENGTH_SHORT,
+                ).show()
             }) { Text(stringResource(R.string.button_copy_diagnostics)) }
         }
 
@@ -82,6 +87,31 @@ internal fun SettingsScreen(state: AppState) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
+        var showLog by remember { mutableStateOf(false) }
+
+        OutlinedButton(onClick = { showLog = true }) {
+            Text(stringResource(R.string.settings_view_log))
+        }
+
+        if (showLog) {
+            val logText = state.logFile()?.readText().orEmpty()
+            AlertDialog(
+                onDismissRequest = { showLog = false },
+                title = { Text(stringResource(R.string.settings_log_title)) },
+                text = {
+                    Text(
+                        logText.ifEmpty { stringResource(R.string.settings_log_empty) },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLog = false }) {
+                        Text(stringResource(R.string.dialog_cancel))
+                    }
+                },
+            )
+        }
 
         Text(
             stringResource(R.string.settings_about),

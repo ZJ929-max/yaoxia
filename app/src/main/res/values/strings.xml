@@ -119,6 +119,12 @@
     <string name="about_managers">已装管理器：%1$s</string>
     <string name="about_shell">当前 shell 通道：%1$s</string>
 
+    <string name="apps_menu_install">装进隔离空间</string>
+    <string name="settings_view_log">查看崩溃日志</string>
+    <string name="settings_log_title">崩溃日志</string>
+    <string name="settings_log_empty">暂时没有崩溃记录</string>
+    <string name="toast_copied">已复制</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

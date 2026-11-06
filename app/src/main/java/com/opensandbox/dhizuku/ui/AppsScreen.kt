@@ -59,6 +59,8 @@ internal fun AppsScreen(state: AppState) {
             return@Column
         }
 
+        var menuFor by remember { mutableStateOf<String?>(null) }
+
         LazyColumn(Modifier.fillMaxSize()) {
             items(visible, key = { it.packageName }) { app ->
                 Column(Modifier.fillMaxWidth()) {
@@ -91,6 +93,23 @@ internal fun AppsScreen(state: AppState) {
                             enabled = app.packageName !in state.busyPackages,
                             onCheckedChange = { target -> state.setFrozen(app, target) },
                         )
+                        Box {
+                            IconButton(onClick = { menuFor = app.packageName }) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = null)
+                            }
+                            DropdownMenu(
+                                expanded = menuFor == app.packageName,
+                                onDismissRequest = { menuFor = null },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.apps_menu_install)) },
+                                    onClick = {
+                                        menuFor = null
+                                        state.installIntoProfile(app.packageName)
+                                    },
+                                )
+                            }
+                        }
                     }
                     Divider()
                 }
