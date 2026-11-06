@@ -33,10 +33,10 @@ class AppsFlow(
         val uninstallBlocked: Boolean,
     )
 
-    fun refresh() {
+    fun refresh(force: Boolean = false) {
         val policy = controlProvider() ?: return
         async.execute({
-            val entries = catalog.load(context.packageManager, context.packageName)
+            val entries = catalog.load(context.packageManager, context.packageName, force)
             val remembered = frozenStore.load()
 
             val built = mutableListOf<AppUi>()

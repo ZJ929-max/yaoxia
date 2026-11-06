@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
         when (intent.getStringExtra("action")) {
             "downloadfont", "downloadharmony" -> state.downloadHarmonyFont()
             "downloadnoto" -> state.downloadFont(DownloadableFont.NOTO)
+            "selftest" -> state.runSelfTest()
         }
         when (intent.getStringExtra("skin")) {
             "miui" -> state.skin = Skin.MIUI

@@ -131,6 +131,12 @@ class ConnectionFlow(
         async.execute({ router.resolve(context, ShellChannel::class.java) }, { outcome ->
             shell = outcome.valueOrNull()
             shellLabel = shell?.describe().orEmpty()
+            if (!outcome.isSuccess) {
+                // 没有任何 shell 通道时，若 shi 装了但没授权，主动拉起授权
+                router.providers()
+                    .filterIsInstance<ShellChannel>()
+                    .forEach { runCatching { it.requestPermission() } }
+            }
         })
     }
 

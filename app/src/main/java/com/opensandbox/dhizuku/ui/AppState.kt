@@ -126,13 +126,23 @@ class AppState(private val context: Context) {
         })
     }
 
+    fun runSelfTest() {
+        async.execute({
+            val results = com.opensandbox.dhizuku.core.SelfTest(context, router).run()
+            Outcome.ok(results)
+        }, { outcome ->
+            val results = outcome.valueOrNull().orEmpty()
+            status = "自检：${results.count { it.ok }}/${results.size} 通过"
+        })
+    }
+
     fun connect() = connectionFlow.connect()
 
     fun refreshChannels() = connectionFlow.refreshChannels()
 
     fun requestScopes() = connectionFlow.requestScopes()
 
-    fun refreshApps() = appsFlow.refresh()
+    fun refreshApps() = appsFlow.refresh(force = true)
 
     fun freezeBatch(packages: Set<String>, target: Boolean) = appsFlow.setFrozenBatch(packages, target)
 

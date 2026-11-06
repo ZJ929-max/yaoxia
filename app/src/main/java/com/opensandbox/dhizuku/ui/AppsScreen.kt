@@ -47,6 +47,11 @@ private val HeaderHeight = 200.dp
 @Composable
 internal fun AppsScreen(state: AppState) {
     val query = state.appsQuery
+    var pendingQuery by remember { mutableStateOf(state.appsQuery) }
+    androidx.compose.runtime.LaunchedEffect(pendingQuery) {
+        kotlinx.coroutines.delay(150)
+        state.appsQuery = pendingQuery
+    }
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var menuFor by remember { mutableStateOf<String?>(null) }
@@ -163,7 +168,10 @@ internal fun AppsScreen(state: AppState) {
                     }
                     OutlinedTextField(
                         value = query,
-                        onValueChange = { state.appsQuery = it },
+                        onValueChange = { value ->
+                            // 防抖：输入停顿 150ms 后再过滤，避免长列表每键全量扫描
+                            pendingQuery = value
+                        },
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.apps_search)) },
                         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
