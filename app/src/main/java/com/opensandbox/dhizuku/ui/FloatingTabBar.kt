@@ -39,11 +39,12 @@ fun FloatingTabBar(
     selected: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    backdropOverride: com.kyant.backdrop.Backdrop? = null,
 ) {
     val shape: androidx.compose.ui.graphics.Shape = com.kyant.shapes.Capsule()
     val surface = MaterialTheme.colorScheme.surface
 
-    val backdrop = LocalBackdrop.current
+    val backdrop = backdropOverride ?: LocalBackdrop.current
     val glass = LocalGlassEnabled.current && backdrop != null
 
     Row(

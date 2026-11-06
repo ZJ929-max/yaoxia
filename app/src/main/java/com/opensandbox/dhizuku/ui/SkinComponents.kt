@@ -107,7 +107,7 @@ fun SkinCard(
             androidx.compose.foundation.layout.Box(
                 modifier
                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                    .background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface)
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) { androidx.compose.foundation.layout.Column(content = content) }
         }
@@ -124,7 +124,11 @@ fun SkinCard(
 @Composable
 fun SkinDivider() {
     if (LocalSkin.current == Skin.MIUI) {
-        MiuixScope { top.yukonga.miuix.kmp.basic.HorizontalDivider() }
+        MiuixScope {
+            top.yukonga.miuix.kmp.basic.HorizontalDivider(
+                color = androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant,
+            )
+        }
     } else {
         androidx.compose.material3.HorizontalDivider()
     }
@@ -133,7 +137,12 @@ fun SkinDivider() {
 @Composable
 fun SkinSectionTitle(text: String) {
     if (LocalSkin.current == Skin.MIUI) {
-        MiuixScope { top.yukonga.miuix.kmp.basic.SmallTitle(text) }
+        MiuixScope {
+            top.yukonga.miuix.kmp.basic.SmallTitle(
+                text = text,
+                textColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+            )
+        }
     } else {
         androidx.compose.material3.Text(
             text,
@@ -165,7 +174,7 @@ fun SkinText(
             top.yukonga.miuix.kmp.basic.Text(
                 text = text,
                 modifier = modifier,
-                color = color ?: top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurface,
+                color = color ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 style = style ?: top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.main,
                 fontWeight = fontWeight,
             )

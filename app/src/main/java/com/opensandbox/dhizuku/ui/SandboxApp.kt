@@ -54,6 +54,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
@@ -194,7 +196,14 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
         )
     }
 
+    val contentBackdrop = rememberLayerBackdrop()
+
     Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .layerBackdrop(contentBackdrop)
+        ) {
         Scaffold(
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
             topBar = { TopAppBar(title = { Text(titles[tab]) }) },
@@ -208,8 +217,10 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                 }
             }
         }
+        }
 
         FloatingTabBar(
+            backdropOverride = contentBackdrop,
             items = icons.zip(titles),
             selected = tab,
             onSelect = { tab = it },
