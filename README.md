@@ -1,96 +1,87 @@
-# OpenSandbox
+# 妖匣（Yaoxia）
 
-适配 Dhizuku 协议（含 she 兼容实现）的 Android 沙盒工具。
-目标：把 dhi / she / shi 三种权限来源统一到一层兼容层里，向"炼妖壶"式隔离演进。
+> 适配 **dhizuku / shevery / shizuku** 三种权限来源的 Android 应用隔离工具。
+> 目标：用一层统一兼容层，做出「把应用关进独立空间」的沙盒体验。
 
-## 技术栈（2026-11 升级后）
+许可证：**MPL-2.0**（见 [`LICENSE`](LICENSE)）
 
-| 项 | 版本 |
+---
+
+## 它做什么
+
+- **应用冻结**：批量冻结/解冻（`setPackagesSuspended`），支持长按多选；
+- **禁止卸载**：给关键应用加卸载锁（`setUninstallBlocked`）；
+- **隔离空间**：创建一个独立用户空间，把应用装进去、在里面启动；
+- **三种权限来源**：dhi（Dhizuku）、she（Shevery）、shi（Shizuku）自动选择并失败换道；
+- **外观**：Material 3 / MIUI（Miuix）双皮肤 + 「梦幻泡泡」玻璃质感 + 三种字体可切换。
+
+## 环境要求
+
+| 项 | 要求 |
 |---|---|
-| 语言 | **Kotlin 2.4.21**（源码 100% Kotlin，无 Java） |
-| 构建 | AGP **9.5.0** + Gradle **9.8.2**（wrapper 自带） |
-| SDK | compileSdk / targetSdk **37**，minSdk 28 |
-| build-tools | **36.0.0**（x86_64，经 qemu 包装运行于 aarch64） |
-
-> AGP 9 起 Kotlin 支持内置，**不再需要** `org.jetbrains.kotlin.android` 插件；
-> 再手动加会直接报错。
-
-## 分层
-
-```
-ui/          MainActivity, AppListAdapter, AppRow
-apps/        AppCatalog（有哪些应用）· AppControl（接口）· PolicyAppControl · FrozenStore
-channels/    PolicyChannel（接口）· DhizukuPolicyChannel · ShellChannel · ShizukuShellChannel
-platform/    Capability · ProviderId · CapabilityProvider · CapabilityRouter · ProviderRegistry ★
-delegation/  DelegationService · DelegationScopes · DhizukuProtocol
-core/        Outcome · AsyncTaskRunner
-```
-
-依赖方向只有一条：`ui → apps / channels → platform / delegation → core`。
-
-## 兼容层
-
-`platform/ProviderRegistry.kt` 是**唯一**需要改的文件：
-
-```kotlin
-fun providers(context: Context) = listOf(
-    DhizukuPolicyChannel(context, ProviderId.SHE, PACKAGE_SHE, DelegationScopes.ALL),
-    DhizukuPolicyChannel(context, ProviderId.DHI, PACKAGE_DHI, DelegationScopes.ALL),
-    ShizukuShellChannel(context)
-)
-```
-
-- 顺序即优先级；`CapabilityRouter` 按「接口类型 + 可用性」挑通道；
-- 不同能力可落到不同提供方（策略走 she、shell 走 shi）——即混合调用；
-- 新增一家（新的权限授予器 / 新的 shell），只加一行。
-
-## 构建（开发期）
-
-```bash
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
-bash tools/build-dev.sh        # 输出 builds/OpenSandbox-dev.apk，不涨版本号
-bash tools/release.sh patch    # 一整套功能做完才用，0.5.3 → 0.5.4
-```
-
-发布构建开了 R8（代码压缩 + 资源裁剪）：31.4 MB → **4.8 MB**。
-`app/proguard-rules.pro` 里保留了 Dhizuku / Shizuku / Miuix / Backdrop 的类，
-并对 Dhizuku 引用的隐藏类加了 `-dontwarn`。
+| Android | 8.0+（minSdk 28），建议 13+ 以获得完整折射效果 |
+| 权限来源 | 任一：Dhizuku（设备所有者）、Shevery、Shizuku（已授权） |
+| 构建 | JDK 21、Android SDK 37、build-tools 36 |
 
 ## 构建
 
 ```bash
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
-export ANDROID_HOME=/workspace/.toolchain/android-sdk   # 见 local.properties
+export JAVA_HOME=/path/to/jdk-21
+export ANDROID_HOME=/path/to/android-sdk
 ./gradlew assembleRelease
 ```
 
-本机特点（aarch64 + proot）：
+产物：`app/build/outputs/apk/release/app-release.apk`
 
-- 官方 build-tools 只发 x86_64，需要 `qemu-x86_64-static -L /workspace/.toolchain/amd64-root`
-  包一层；包装脚本见 `/workspace/.toolchain/setup.sh`；
-- `gradle.properties` 里 `android.aapt2FromMavenOverride` 指向包装后的 aapt2；
-- Kotlin 编译守护进程在 proot 下会失败，已设 `kotlin.compiler.execution.strategy=in-process`。
+签名：把 `keystore.properties`（不入库）放到仓库根目录：
 
-## 版本号策略
+```properties
+storeFile=keystore.jks
+storePassword=***
+keyAlias=***
+keyPassword=***
+```
 
-- `versionCode` **固定为 1**：任意两版可互相覆盖安装（同签名）；
-- `versionName` 只在功能变化时改；
-- 唯一来源 `version.properties`，由 `build.gradle.kts` 读取。
+## 自检（不看界面也能验证链路）
 
-## 已知限制
+```bash
+adb shell am start -n com.opensandbox.dhizuku/.ui.MainActivity --es action selftest
+adb logcat -d | grep YaoxiaTest
+```
 
-- 工作资料（真正的工作资料）无法由第三方 App 创建，需要 `MANAGE_USERS`（signature|privileged）；
-  只能走 shi 的 shell 通道（`pm create-user --profileOf … --managed`）。
-- 冻结/禁止卸载依赖 she/dhi 的委派范围；shizuku 通道目前只提供 shell 执行能力。
+覆盖：provider 可用性 → 委派连接 → 委派范围 → shell 通道 → `pm list users` 解析 →
+隔离空间定位 → 空间内应用数 → 策略只读查询 → 应用列表加载。
 
-## 许可证
+## 架构
 
-本项目采用 **Mozilla Public License 2.0（MPL-2.0）**，全文见仓库根目录 [`LICENSE`](LICENSE)。
+```
+ui/          MainActivity · SandboxApp · 四个页面 · Glass / SkinComponents
+apps/        AppCatalog（并行+缓存）· AppControl · PolicyAppControl · FrozenStore
+channels/    PolicyChannel · ShellChannel · Dhizuku / Shevery / Shizuku 实现
+platform/    Capability · ProviderId · CapabilityProvider · CapabilityRouter · ProviderRegistry ★
+delegation/  DelegationService · DelegationScopes · DhizukuProtocol
+provision/   ShellCommands · UserListParser · ProfileApps · Shell/Dhizuku Provisioner
+core/        Outcome · AsyncTaskRunner · FailureReporter · SelfTest
+logic/       纯 Kotlin 模块：ShellCommands / UserListParser（带 JUnit 测试）
+```
 
-- 每个源文件头部都带 SPDX 标识：`SPDX-License-Identifier: MPL-2.0`；
-- MPL-2.0 是**文件级** copyleft：你可以把本项目与本项目之外的代码组合使用，
-  但**对本项目文件的修改必须以 MPL-2.0 公开**；
-- 第三方依赖（Compose / Backdrop / Miuix / Dhizuku / Shizuku / Roboto / Noto / HarmonyOS Sans）
-  各自保持原许可证，清单见 [`docs/ATTRIBUTION.md`](docs/ATTRIBUTION.md)；
-- **GPL-3.0 项目的代码不得进入本仓库**（GPL 与 MPL 是单向兼容）；
-  Shelter、InstallerX 仅作观感参考，未复制代码。
+依赖方向单向：`ui → apps / channels / provision → platform / delegation → core`。
+`platform/ProviderRegistry.kt` 是**唯一**的通道注册表，加一行即接入新的权限来源。
+
+### 关于「隔离空间」
+
+Android 的**工作资料（managed profile）在第三方应用范围内无法创建**——需要
+`MANAGE_PROFILE_AND_DEVICE_OWNERS`（signature 级）。因此本项目用**完整次级用户**做隔离：
+打开其中的应用会切换前台用户、本应用被挂起，这是系统硬限制，界面上有明确提示。
+
+## 测试
+
+```bash
+./gradlew :logic:test        # 纯逻辑单测
+```
+
+## 许可与致谢
+
+- 本项目：MPL-2.0；
+- 第三方依赖与设计参考（Island / Shelter / InstallerX 的边界说明）见 [`docs/ATTRIBUTION.md`](docs/ATTRIBUTION.md)；
+- 「梦幻泡泡效果」的设计取舍见 [`docs/梦幻泡泡效果.md`](docs/梦幻泡泡效果.md)。
