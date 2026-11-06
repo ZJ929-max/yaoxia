@@ -56,6 +56,14 @@ fun SandboxSurface(content: @Composable () -> Unit) {
         )
     )
     val backdrop = rememberLayerBackdrop()
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        android.util.Log.i(
+            "YaoxiaGlass",
+            "sdk=${android.os.Build.VERSION.SDK_INT} " +
+                "renderEffect=${com.kyant.backdrop.isRenderEffectSupported()} " +
+                "runtimeShader=${com.kyant.backdrop.isRuntimeShaderSupported()}",
+        )
+    }
     val cardBackdrop = rememberCanvasBackdrop {
         drawRect(brush = gradient)
         drawCircle(
@@ -102,7 +110,7 @@ fun SandboxSurface(content: @Composable () -> Unit) {
 /** 统一入口：液态玻璃（折射 + 模糊 + 增艳 + 高光 + 内外阴影）。 */
 fun Modifier.liquidGlass(
     backdrop: Backdrop,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = com.kyant.shapes.RoundedRectangle(24.dp),
     tint: Color = Color.Transparent,
     blurRadius: Dp = 6.dp,
     lensRadius: Dp = 12.dp,
@@ -135,7 +143,7 @@ fun GlassCard(
         Box(
             modifier.liquidGlass(
                 backdrop = backdrop,
-                shape = RoundedCornerShape(24.dp),
+                shape = com.kyant.shapes.RoundedRectangle(24.dp),
                 tint = surface.copy(alpha = 0.42f),
             )
         ) {

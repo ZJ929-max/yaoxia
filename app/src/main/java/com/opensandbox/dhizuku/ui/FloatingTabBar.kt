@@ -40,7 +40,7 @@ fun FloatingTabBar(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(32.dp)
+    val shape: androidx.compose.ui.graphics.Shape = com.kyant.shapes.Capsule()
     val surface = MaterialTheme.colorScheme.surface
 
     val backdrop = LocalBackdrop.current
