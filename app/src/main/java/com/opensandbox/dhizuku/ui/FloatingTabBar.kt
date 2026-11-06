@@ -58,7 +58,7 @@ fun FloatingTabBar(
                     Modifier.liquidGlass(
                         backdrop = backdrop!!,
                         shape = shape,
-                        tint = surface.copy(alpha = 0.42f),
+                        tint = surface.copy(alpha = 0.22f),
                         blurRadius = 8.dp,
                         lensRadius = 24.dp,
                         lensOffset = 24.dp,

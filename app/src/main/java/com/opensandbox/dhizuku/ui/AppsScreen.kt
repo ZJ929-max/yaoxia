@@ -97,7 +97,7 @@ internal fun AppsScreen(state: AppState) {
 
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 120.dp),
+            contentPadding = PaddingValues(bottom = 176.dp),
         ) {
             items(visible, key = { it.packageName }) { app ->
                 val checked = app.packageName in selected
