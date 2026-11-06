@@ -111,6 +111,7 @@ fun SandboxTheme(
 @Composable
 fun SandboxApp(state: AppState, initialTab: Int = 0) {
     var tab by rememberSaveable { mutableIntStateOf(initialTab.coerceIn(0, 3)) }
+    var logged by remember { androidx.compose.runtime.mutableStateOf(false) }
     val titles =
         listOf(
             stringResource(R.string.tab_status),
@@ -196,8 +197,17 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
         )
     }
 
-    val contentBackdrop = rememberLayerBackdrop()
+    val contentBackdrop = rememberLayerBackdrop(
+        onDraw = {
+            drawContent()
+            if (!logged) {
+                logged = true
+                android.util.Log.i("YaoxiaGlass", "content layer recorded ${size.width}x${size.height}")
+            }
+        },
+    )
 
+    SandboxSurface {
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -206,7 +216,15 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
         ) {
         Scaffold(
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
-            topBar = { TopAppBar(title = { Text(titles[tab]) }) },
+            topBar = {
+                // 透明顶栏：否则会盖住 SandboxSurface 的背景光斑（梦幻泡泡的底色来源）
+                TopAppBar(
+                    title = { Text(titles[tab]) },
+                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    ),
+                )
+            },
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
                 when (tab) {
@@ -227,6 +245,8 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
+    }
+
 }
 
 // ---------------------------------------------------------------- 状态页

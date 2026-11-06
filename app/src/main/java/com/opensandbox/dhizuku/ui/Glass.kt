@@ -81,21 +81,20 @@ fun SandboxSurface(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().background(gradient).layerBackdrop(backdrop)) {
             Canvas(Modifier.fillMaxSize()) {
-                drawCircle(
-                    color = Color(0xFF6D5BFF).copy(alpha = 0.30f),
-                    radius = size.minDimension * 0.5f,
-                    center = Offset(size.width * 0.15f, size.height * 0.10f),
-                )
-                drawCircle(
-                    color = Color(0xFF00D4B8).copy(alpha = 0.20f),
-                    radius = size.minDimension * 0.42f,
-                    center = Offset(size.width * 0.90f, size.height * 0.62f),
-                )
-                drawCircle(
-                    color = Color(0xFFFF9F0A).copy(alpha = 0.12f),
-                    radius = size.minDimension * 0.30f,
-                    center = Offset(size.width * 0.72f, size.height * 0.95f),
-                )
+                fun glow(color: Color, cx: Float, cy: Float, r: Float) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(color, Color.Transparent),
+                            center = Offset(size.width * cx, size.height * cy),
+                            radius = size.minDimension * r,
+                        ),
+                        radius = size.minDimension * r,
+                        center = Offset(size.width * cx, size.height * cy),
+                    )
+                }
+                glow(Color(0xFF6D5BFF).copy(alpha = 0.55f), 0.15f, 0.10f, 0.55f)
+                glow(Color(0xFF00D4B8).copy(alpha = 0.40f), 0.90f, 0.62f, 0.50f)
+                glow(Color(0xFFFF9F0A).copy(alpha = 0.30f), 0.72f, 0.95f, 0.42f)
             }
         }
 
@@ -116,10 +115,14 @@ fun Modifier.liquidGlass(
     lensRadius: Dp = 12.dp,
     lensOffset: Dp = 24.dp,
     highlightAlpha: Float = 0.35f,
+    layerBlock: (androidx.compose.ui.graphics.GraphicsLayerScope.() -> Unit)? = null,
+    pulse: () -> Unit = {},
 ): Modifier = drawBackdrop(
     backdrop = backdrop,
     shape = { shape },
     effects = {
+        // 读一个 snapshot state，让 observeReads 注册并触发 updateEffects
+        pulse()
         vibrancy()
         blur(blurRadius.toPx())
         lens(lensRadius.toPx(), lensOffset.toPx(), chromaticAberration = true)
@@ -128,6 +131,7 @@ fun Modifier.liquidGlass(
     shadow = { Shadow(alpha = 0.18f) },
     innerShadow = { InnerShadow(radius = 6.dp, alpha = 0.25f) },
     onDrawSurface = { if (tint.alpha > 0f) drawRect(tint) },
+    layerBlock = layerBlock,
 )
 
 @Composable

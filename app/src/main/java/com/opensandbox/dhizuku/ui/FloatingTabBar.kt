@@ -44,6 +44,7 @@ fun FloatingTabBar(
     val shape: androidx.compose.ui.graphics.Shape = com.kyant.shapes.Capsule()
     val surface = MaterialTheme.colorScheme.surface
 
+    val repaint = remember { androidx.compose.runtime.mutableIntStateOf(0) }
     val backdrop = backdropOverride ?: LocalBackdrop.current
     val glass = LocalGlassEnabled.current && backdrop != null
 
@@ -57,15 +58,20 @@ fun FloatingTabBar(
                     Modifier.liquidGlass(
                         backdrop = backdrop!!,
                         shape = shape,
-                        blurRadius = 28.dp,
-                        tint = Color.White.copy(alpha = 0.08f),
+                        tint = surface.copy(alpha = 0.42f),
+                        blurRadius = 8.dp,
+                        lensRadius = 24.dp,
+                        lensOffset = 24.dp,
+                        layerBlock = {},
+                        pulse = { repaint.intValue },
                     )
                 } else {
-                    Modifier.clip(shape).background(surface.copy(alpha = 0.88f))
+                    Modifier
+                        .clip(shape)
+                        .background(surface.copy(alpha = 0.88f))
+                        .border(1.dp, Color.White.copy(alpha = 0.12f), shape)
                 }
-            )
-            .background(Color.White.copy(alpha = if (glass) 0.04f else 0.03f), shape)
-            .border(1.dp, Color.White.copy(alpha = 0.14f), shape),
+            ),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
