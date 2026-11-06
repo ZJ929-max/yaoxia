@@ -24,7 +24,7 @@ import com.kyant.backdrop.effects.vibrancy
 
 /** 玻璃开关与"背景层"，由根部提供，卡片自己决定要不要玻璃。 */
 val LocalGlassEnabled = staticCompositionLocalOf { false }
-private val LocalBackdrop = staticCompositionLocalOf<Backdrop?> { null }
+internal val LocalBackdrop = staticCompositionLocalOf<Backdrop?> { null }
 
 /**
  * 铺一层有颜色的底：液态玻璃必须有东西可"折射"，否则在纯色背景上看不出效果。
@@ -78,7 +78,7 @@ fun GlassCard(
             Column(Modifier.padding(16.dp), content = content)
         }
     } else {
-        Card(modifier) {
+        Card(modifier, shape = RoundedCornerShape(24.dp)) {
             Column(Modifier.padding(16.dp), content = content)
         }
     }

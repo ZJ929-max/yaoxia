@@ -61,7 +61,7 @@ internal fun AppsScreen(state: AppState) {
 
         var menuFor by remember { mutableStateOf<String?>(null) }
 
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             items(visible, key = { it.packageName }) { app ->
                 Column(Modifier.fillMaxWidth()) {
                     Row(

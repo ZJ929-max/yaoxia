@@ -166,17 +166,13 @@ fun SandboxApp(state: AppState) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(titles[tab]) }) },
         bottomBar = {
-            NavigationBar {
-                titles.forEachIndexed { index, title ->
-                    NavigationBarItem(
-                        selected = tab == index,
-                        onClick = { tab = index },
-                        icon = { Icon(icons[index], contentDescription = title) },
-                        label = { Text(title) },
-                    )
-                }
-            }
+            FloatingTabBar(
+                items = icons.zip(titles),
+                selected = tab,
+                onSelect = { tab = it },
+            )
         },
+
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
