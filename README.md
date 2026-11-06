@@ -82,3 +82,15 @@ export ANDROID_HOME=/workspace/.toolchain/android-sdk   # 见 local.properties
 - 工作资料（真正的工作资料）无法由第三方 App 创建，需要 `MANAGE_USERS`（signature|privileged）；
   只能走 shi 的 shell 通道（`pm create-user --profileOf … --managed`）。
 - 冻结/禁止卸载依赖 she/dhi 的委派范围；shizuku 通道目前只提供 shell 执行能力。
+
+## 许可证
+
+本项目采用 **Mozilla Public License 2.0（MPL-2.0）**，全文见仓库根目录 [`LICENSE`](LICENSE)。
+
+- 每个源文件头部都带 SPDX 标识：`SPDX-License-Identifier: MPL-2.0`；
+- MPL-2.0 是**文件级** copyleft：你可以把本项目与本项目之外的代码组合使用，
+  但**对本项目文件的修改必须以 MPL-2.0 公开**；
+- 第三方依赖（Compose / Backdrop / Miuix / Dhizuku / Shizuku / Roboto / Noto / HarmonyOS Sans）
+  各自保持原许可证，清单见 [`docs/ATTRIBUTION.md`](docs/ATTRIBUTION.md)；
+- **GPL-3.0 项目的代码不得进入本仓库**（GPL 与 MPL 是单向兼容）；
+  Shelter、InstallerX 仅作观感参考，未复制代码。
