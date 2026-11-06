@@ -17,6 +17,12 @@ class MainActivity : ComponentActivity() {
 
         FailureReporter.install(this)
         state = AppState(this)
+        when (intent.getStringExtra("font")) {
+            "harmony" -> state.chooseFont(AppFont.HARMONY)
+            "default" -> state.chooseFont(AppFont.DEFAULT)
+            "system" -> state.chooseFont(AppFont.SYSTEM)
+        }
+        if (intent.getStringExtra("action") == "downloadfont") state.downloadHarmonyFont()
         when (intent.getStringExtra("skin")) {
             "miui" -> state.skin = Skin.MIUI
             "system" -> state.skin = Skin.SYSTEM
@@ -24,7 +30,13 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            SandboxTheme(state.skin, state.glassEnabled) {
+            val family = when (state.font) {
+                AppFont.SYSTEM -> androidx.compose.ui.text.font.FontFamily.Default
+                AppFont.DEFAULT -> androidx.compose.ui.text.font.FontFamily.SansSerif
+                AppFont.HARMONY -> HarmonyFont.load(this)
+                    ?: androidx.compose.ui.text.font.FontFamily.Default
+            }
+            SandboxTheme(state.skin, state.glassEnabled, family) {
                 SandboxApp(state, intent.getIntExtra("tab", 0))
             }
         }

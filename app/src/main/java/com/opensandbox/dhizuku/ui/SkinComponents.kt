@@ -37,7 +37,8 @@ fun MiuixScope(content: @Composable () -> Unit) {
     val dark = androidx.compose.foundation.isSystemInDarkTheme()
     val colors = if (dark) top.yukonga.miuix.kmp.theme.darkColorScheme()
     else top.yukonga.miuix.kmp.theme.lightColorScheme()
-    top.yukonga.miuix.kmp.theme.MiuixTheme(colors = colors) { content() }
+    val styles = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.withFamily(LocalFontFamily.current)
+    top.yukonga.miuix.kmp.theme.MiuixTheme(colors = colors, textStyles = styles) { content() }
 }
 
 @Composable

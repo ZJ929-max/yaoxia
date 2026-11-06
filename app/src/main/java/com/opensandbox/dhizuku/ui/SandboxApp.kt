@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Typography
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -61,6 +62,7 @@ import com.opensandbox.dhizuku.R
 fun SandboxTheme(
     skin: Skin,
     glassEnabled: Boolean,
+    fontFamily: androidx.compose.ui.text.font.FontFamily? = null,
     content: @Composable () -> Unit,
 ) {
     val dark = isSystemInDarkTheme()
@@ -91,10 +93,11 @@ fun SandboxTheme(
             }
         }
 
-    MaterialTheme(colorScheme = colors) {
+    MaterialTheme(colorScheme = colors, typography = androidx.compose.material3.Typography().withFamily(fontFamily)) {
         ProvideSkin(skin) {
             CompositionLocalProvider(
                 LocalGlassEnabled provides glassEnabled,
+                LocalFontFamily provides fontFamily,
                 LocalSkin provides skin,
                 content = content,
             )

@@ -47,6 +47,39 @@ internal fun SettingsScreen(state: AppState) {
         }
 
         GlassCard(Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.settings_font), fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val fonts = listOf(
+                    AppFont.SYSTEM to R.string.font_system,
+                    AppFont.DEFAULT to R.string.font_default,
+                    AppFont.HARMONY to R.string.font_harmony,
+                )
+                fonts.forEachIndexed { index, (choice, label) ->
+                    SegmentedButton(
+                        selected = state.font == choice,
+                        onClick = { state.chooseFont(choice) },
+                        shape = SegmentedButtonDefaults.itemShape(index, fonts.size),
+                    ) { Text(stringResource(label), maxLines = 1) }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(
+                    if (state.harmonyReady) R.string.font_harmony_ready
+                    else R.string.font_harmony_missing
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!state.harmonyReady) {
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(onClick = { state.downloadHarmonyFont() }, enabled = !state.fontBusy) {
+                    Text(stringResource(R.string.font_download))
+                }
+            }
+        }
+
+        GlassCard(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.settings_glass), fontWeight = FontWeight.SemiBold)

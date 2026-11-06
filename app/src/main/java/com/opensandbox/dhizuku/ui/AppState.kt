@@ -34,6 +34,9 @@ class AppState(private val context: Context) {
     var status by mutableStateOf(context.getString(R.string.status_connecting))
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
+    var font by mutableStateOf(FontPrefs.load(context))
+    var harmonyReady by mutableStateOf(HarmonyFont.isReady(context))
+    var fontBusy by mutableStateOf(false)
 
     var pendingLaunch by mutableStateOf<AppUi?>(null)
     var pendingSwitchBack by mutableStateOf(false)
@@ -76,6 +79,27 @@ class AppState(private val context: Context) {
     val profileBusy: Boolean get() = profileFlow.busy
 
     // ------------------------------------------------------------------ 动作转发
+
+    fun chooseFont(choice: AppFont) {
+        font = choice
+        FontPrefs.save(context, choice)
+    }
+
+    fun downloadHarmonyFont() {
+        if (fontBusy) return
+        fontBusy = true
+        status = "正在下载鸿蒙字体…"
+        async.execute({ HarmonyFont.download(context) }, { outcome ->
+            fontBusy = false
+            harmonyReady = HarmonyFont.isReady(context)
+            status = if (outcome.isSuccess) {
+                chooseFont(AppFont.HARMONY)
+                "鸿蒙字体已就绪"
+            } else {
+                "鸿蒙字体下载失败：${outcome.errorOrNull()}"
+            }
+        })
+    }
 
     fun connect() = connectionFlow.connect()
 
