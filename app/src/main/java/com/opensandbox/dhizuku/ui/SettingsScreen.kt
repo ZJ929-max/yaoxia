@@ -1,10 +1,29 @@
 package com.opensandbox.dhizuku.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,9 +46,18 @@ internal fun SettingsScreen(state: AppState) {
             .padding(start = 16.dp, top = AppBarInset + 16.dp, end = 16.dp, bottom = 176.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // ---------------- 外观：皮肤 / 字体 / 液态玻璃 三合一 ----------------
         GlassCard(Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.settings_appearance), fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.settings_appearance),
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // 皮肤
+            Text(stringResource(R.string.settings_skin), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 val options = listOf(
                     Skin.SYSTEM to R.string.appearance_system,
@@ -44,11 +72,14 @@ internal fun SettingsScreen(state: AppState) {
                     ) { Text(stringResource(label), maxLines = 1) }
                 }
             }
-        }
 
-        GlassCard(Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.settings_font), fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
+            SkinDivider()
+            Spacer(Modifier.height(12.dp))
+
+            // 字体
+            Text(stringResource(R.string.settings_font), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 val fonts = listOf(
                     AppFont.SYSTEM to R.string.font_system,
@@ -63,7 +94,7 @@ internal fun SettingsScreen(state: AppState) {
                     ) { Text(stringResource(label), maxLines = 1) }
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 stringResource(
                     if (state.harmonyReady) R.string.font_harmony_ready
@@ -72,12 +103,12 @@ internal fun SettingsScreen(state: AppState) {
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!state.harmonyReady) {
-                Spacer(Modifier.height(6.dp))
-                OutlinedButton(onClick = { state.downloadHarmonyFont() }, enabled = !state.fontBusy) {
-                    Text(stringResource(R.string.font_download))
-                }
+                OutlinedButton(
+                    onClick = { state.downloadHarmonyFont() },
+                    enabled = !state.fontBusy,
+                ) { Text(stringResource(R.string.font_download)) }
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 stringResource(
                     if (state.notoReady) R.string.font_noto_ready
@@ -86,15 +117,17 @@ internal fun SettingsScreen(state: AppState) {
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!state.notoReady) {
-                Spacer(Modifier.height(6.dp))
                 OutlinedButton(
                     onClick = { state.downloadFont(DownloadableFont.NOTO) },
                     enabled = !state.fontBusy,
                 ) { Text(stringResource(R.string.font_noto_download)) }
             }
-        }
 
-        GlassCard(Modifier.fillMaxWidth()) {
+            Spacer(Modifier.height(12.dp))
+            SkinDivider()
+            Spacer(Modifier.height(12.dp))
+
+            // 液态玻璃
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.settings_glass), fontWeight = FontWeight.SemiBold)
@@ -123,6 +156,7 @@ internal fun SettingsScreen(state: AppState) {
             )
         }
 
+        // ---------------- 关于 ----------------
         GlassCard(Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.settings_about), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(6.dp))
@@ -132,6 +166,7 @@ internal fun SettingsScreen(state: AppState) {
             Text(stringResource(R.string.about_shell, state.shellLabel.ifEmpty { "未解析" }), style = MaterialTheme.typography.bodySmall)
         }
 
+        // ---------------- 诊断 ----------------
         GlassCard(Modifier.fillMaxWidth()) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = {

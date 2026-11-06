@@ -61,6 +61,7 @@
     <string name="profile_title">隔离空间</string>
     <string name="profile_explain">优先用 dhi 的设备所有者身份建「工作资料」；失败会自动回落成 shell 建的「完整次级用户」（隔离够用，但系统里显示为另一个账号）。两条都失败时，下面会写清各自的原因。</string>
     <string name="settings_appearance">外观</string>
+    <string name="settings_skin">皮肤</string>
     <string name="settings_font">字体</string>
     <string name="font_system">系统字体</string>
     <string name="font_default">默认字体</string>
