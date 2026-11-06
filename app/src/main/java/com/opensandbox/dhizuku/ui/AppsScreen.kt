@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -28,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,6 +46,8 @@ internal fun AppsScreen(state: AppState) {
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var menuFor by remember { mutableStateOf<String?>(null) }
+    var searchExpanded by rememberSaveable { mutableStateOf(false) }
+    val searchFocus = remember { androidx.compose.ui.focus.FocusRequester() }
 
     val visible = state.apps.filter {
         query.isBlank() || it.label.contains(query, true) || it.packageName.contains(query, true)
@@ -58,7 +63,10 @@ internal fun AppsScreen(state: AppState) {
         } else {
             LazyColumn(
                 Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = HeaderHeight, bottom = 176.dp),
+                contentPadding = PaddingValues(
+                    top = if (searchExpanded) HeaderHeight else 72.dp,
+                    bottom = 176.dp,
+                ),
             ) {
                 items(visible, key = { it.packageName }) { app ->
                     val checked = app.packageName in selected
@@ -129,23 +137,36 @@ internal fun AppsScreen(state: AppState) {
             }
         }
 
-        // 浮层头部：应用数 / 刷新 / 搜索（半透明，列表从下面穿过）
+        // 浮层头部：折叠成右上角搜索按钮；点击展开并自动聚焦
         Column(Modifier.fillMaxWidth()) {
-            if (selecting) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-                    TextButton(onClick = { state.freezeBatch(selected, true) }) {
-                        Text(stringResource(R.string.apps_freeze_selected))
+            if (!searchExpanded) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        if (selecting) stringResource(R.string.apps_selected, selected.size)
+                        else stringResource(R.string.apps_count, visible.size),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Surface(
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.28f),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.18f),
+                        ),
+                        modifier = Modifier.size(44.dp),
+                    ) {
+                        IconButton(onClick = { searchExpanded = true }) {
+                            Icon(
+                                Icons.Filled.Search,
+                                contentDescription = stringResource(R.string.apps_search),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
-                    TextButton(onClick = { state.freezeBatch(selected, false) }) {
-                        Text(stringResource(R.string.apps_unfreeze_selected))
-                    }
-                    TextButton(onClick = { state.installBatch(selected) }) {
-                        Text(stringResource(R.string.apps_install_selected))
-                    }
-                    TextButton(onClick = {
-                        selecting = false
-                        selected = emptySet()
-                    }) { Text(stringResource(R.string.apps_cancel_select)) }
                 }
             } else {
                 GlassCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
@@ -159,9 +180,21 @@ internal fun AppsScreen(state: AppState) {
                             else stringResource(R.string.apps_count, visible.size),
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        if (!selecting) {
-                            TextButton(onClick = { state.refreshApps() }) {
-                                Text(stringResource(R.string.button_refresh))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (!selecting) {
+                                TextButton(onClick = { state.refreshApps() }) {
+                                    Text(stringResource(R.string.button_refresh))
+                                }
+                            }
+                            IconButton(onClick = {
+                                query = ""
+                                searchExpanded = false
+                            }) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }
@@ -171,8 +204,13 @@ internal fun AppsScreen(state: AppState) {
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.apps_search)) },
                         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(searchFocus),
                     )
+                    androidx.compose.runtime.LaunchedEffect(Unit) {
+                        searchFocus.requestFocus()
+                    }
                 }
             }
             Spacer(Modifier.height(4.dp))

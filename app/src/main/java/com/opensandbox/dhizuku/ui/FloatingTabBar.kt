@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.lens
 
 /**
  * 悬浮胶囊导航栏——照着 InstallerX Revived 的观感做：
@@ -58,6 +60,19 @@ fun FloatingTabBar(
                     Modifier
                         .clip(shape)
                         .background(surface.copy(alpha = LocalGlassAlpha.current + 0.06f), shape)
+                        .then(
+                            if (backdrop != null) {
+                                Modifier.drawBackdrop(
+                                    backdrop = backdrop,
+                                    shape = { shape },
+                                    effects = {
+                                        lens(16.dp.toPx(), 20.dp.toPx(), chromaticAberration = true)
+                                    },
+                                    highlight = { com.kyant.backdrop.highlight.Highlight.Default.copy(alpha = 0.3f) },
+                                    onDrawSurface = {},
+                                )
+                            } else Modifier
+                        )
                         .border(1.dp, Color.White.copy(alpha = 0.20f), shape)
                 } else {
                     Modifier

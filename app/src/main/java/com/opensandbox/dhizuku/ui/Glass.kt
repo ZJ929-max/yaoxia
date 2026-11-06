@@ -159,13 +159,34 @@ fun GlassCard(
             modifier
                 .clip(shape)
                 .background(surface.copy(alpha = LocalGlassAlpha.current), shape)
+                .then(
+                    if (backdrop != null) {
+                        Modifier.drawBackdrop(
+                            backdrop = backdrop,
+                            shape = { shape },
+                            effects = {
+                                lens(20.dp.toPx(), 24.dp.toPx(), chromaticAberration = true)
+                            },
+                            highlight = { com.kyant.backdrop.highlight.Highlight.Default.copy(alpha = 0.25f) },
+                            onDrawSurface = {},
+                        )
+                    } else Modifier
+                )
                 .border(1.dp, Color.White.copy(alpha = 0.16f), shape)
         ) {
-            Column(Modifier.padding(16.dp), content = content)
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+            ) {
+                Column(Modifier.padding(16.dp), content = content)
+            }
         }
     } else {
         Card(modifier, shape = RoundedCornerShape(24.dp)) {
-            Column(Modifier.padding(16.dp), content = content)
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+            ) {
+                Column(Modifier.padding(16.dp), content = content)
+            }
         }
     }
 }
