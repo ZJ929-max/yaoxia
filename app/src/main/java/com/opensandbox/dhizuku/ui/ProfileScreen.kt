@@ -86,7 +86,7 @@ internal fun ProfileScreen(state: AppState) {
             return@Column
         }
 
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 120.dp)) {
             items(
                 state.apps.filter { app ->
                     val installed = app.packageName in state.profileApps

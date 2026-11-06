@@ -2,6 +2,7 @@ package com.opensandbox.dhizuku.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -190,25 +191,27 @@ fun SandboxApp(state: AppState) {
         )
     }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(titles[tab]) }) },
-        bottomBar = {
-            FloatingTabBar(
-                items = icons.zip(titles),
-                selected = tab,
-                onSelect = { tab = it },
-            )
-        },
-
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            when (tab) {
-                0 -> StatusScreen(state)
-                1 -> AppsScreen(state)
-                2 -> ProfileScreen(state)
-                else -> SettingsScreen(state)
+    Box(Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            topBar = { TopAppBar(title = { Text(titles[tab]) }) },
+        ) { padding ->
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                when (tab) {
+                    0 -> StatusScreen(state)
+                    1 -> AppsScreen(state)
+                    2 -> ProfileScreen(state)
+                    else -> SettingsScreen(state)
+                }
             }
         }
+
+        FloatingTabBar(
+            items = icons.zip(titles),
+            selected = tab,
+            onSelect = { tab = it },
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 

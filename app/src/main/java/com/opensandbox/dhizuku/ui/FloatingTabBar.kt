@@ -57,20 +57,19 @@ fun FloatingTabBar(
             .height(64.dp)
             .then(
                 if (glass) {
-                    Modifier.drawBackdrop(
+                    Modifier.liquidGlass(
                         backdrop = backdrop!!,
-                        shape = { shape },
-                        effects = {
-                            vibrancy()
-                            blur(8.dp.toPx())
-                            lens(12.dp.toPx(), 24.dp.toPx())
-                        },
+                        shape = shape,
+                        blurRadius = 8.dp,
+                        lensRadius = 12.dp,
+                        lensOffset = 24.dp,
                     )
                 } else {
-                    Modifier.clip(shape).background(surface.copy(alpha = 0.92f))
+                    Modifier.clip(shape).background(surface.copy(alpha = 0.88f))
                 }
             )
-            .border(1.dp, Color.White.copy(alpha = 0.10f), shape),
+            .background(Color.White.copy(alpha = if (glass) 0.10f else 0.04f), shape)
+            .border(1.dp, Color.White.copy(alpha = 0.14f), shape),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
