@@ -67,6 +67,8 @@ fun SandboxTheme(
 
     val colors =
         when (skin) {
+            Skin.SYSTEM -> base
+
             Skin.MATERIAL -> {
                 base
             }

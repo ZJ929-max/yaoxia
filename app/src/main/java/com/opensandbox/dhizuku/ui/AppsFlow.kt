@@ -96,6 +96,28 @@ class AppsFlow(
         })
     }
 
+    /** 批量冻结/解冻：逐个走通道回退，最后统一刷新一次。 */
+    fun setFrozenBatch(packages: Set<String>, target: Boolean) {
+        if (controlProvider() == null || packages.isEmpty()) return
+        async.execute({
+            var last: Outcome<Unit> = Outcome.ok(Unit)
+            for (pkg in packages) {
+                val result = withFallback { it.setFrozen(pkg, target) }
+                if (!result.isSuccess) last = result
+            }
+            last
+        }, { outcome ->
+            report(
+                if (outcome.isSuccess) {
+                    context.getString(R.string.apps_batch_done, packages.size)
+                } else {
+                    context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty())
+                },
+            )
+            refresh()
+        })
+    }
+
     fun toggleUninstallBlock(app: AppUi) {
         if (controlProvider() == null) return
         val target = !app.uninstallBlocked

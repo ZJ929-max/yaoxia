@@ -125,6 +125,15 @@
     <string name="settings_log_empty">暂时没有崩溃记录</string>
     <string name="toast_copied">已复制</string>
 
+    <string name="appearance_system">跟随系统</string>
+    <string name="apps_batch">批量</string>
+    <string name="apps_selected">已选 %1$d 个</string>
+    <string name="apps_freeze_selected">冻结</string>
+    <string name="apps_unfreeze_selected">解冻</string>
+    <string name="apps_install_selected">装进隔离</string>
+    <string name="apps_cancel_select">取消</string>
+    <string name="apps_batch_done">已处理 %1$d 个应用</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

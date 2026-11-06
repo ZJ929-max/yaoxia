@@ -20,16 +20,22 @@ internal fun SettingsScreen(state: AppState) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(stringResource(R.string.settings_appearance), style = MaterialTheme.typography.titleSmall)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(
-                onClick = { state.skin = Skin.MATERIAL },
-                enabled = state.skin != Skin.MATERIAL,
-            ) { Text(stringResource(R.string.appearance_material)) }
 
-            OutlinedButton(
-                onClick = { state.skin = Skin.MIUI },
-                enabled = state.skin != Skin.MIUI,
-            ) { Text(stringResource(R.string.appearance_miui)) }
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            val options = listOf(
+                Skin.SYSTEM to R.string.appearance_system,
+                Skin.MATERIAL to R.string.appearance_material,
+                Skin.MIUI to R.string.appearance_miui,
+            )
+            options.forEachIndexed { index, (skin, label) ->
+                SegmentedButton(
+                    selected = state.skin == skin,
+                    onClick = { state.skin = skin },
+                    shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                ) {
+                    Text(stringResource(label), maxLines = 1)
+                }
+            }
         }
 
         Divider()

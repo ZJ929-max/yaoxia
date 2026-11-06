@@ -18,7 +18,7 @@ import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
 typealias AppUi = AppsFlow.AppUi
 
 /** 外观预设，只影响配色，不影响布局。 */
-enum class Skin { MATERIAL, MIUI }
+enum class Skin { SYSTEM, MATERIAL, MIUI }
 
 /**
  * 组装层：把三块流程（连接 / 应用 / 隔离空间）接起来，只做转发与全局状态。
@@ -82,6 +82,12 @@ class AppState(private val context: Context) {
     fun requestScopes() = connectionFlow.requestScopes()
 
     fun refreshApps() = appsFlow.refresh()
+
+    fun freezeBatch(packages: Set<String>, target: Boolean) = appsFlow.setFrozenBatch(packages, target)
+
+    fun installBatch(packages: Set<String>) {
+        packages.forEach { profileFlow.install(it) }
+    }
 
     fun setFrozen(app: AppUi, target: Boolean) = appsFlow.setFrozen(app, target)
 
