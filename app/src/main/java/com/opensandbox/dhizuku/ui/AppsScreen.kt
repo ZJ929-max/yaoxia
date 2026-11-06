@@ -41,7 +41,7 @@ import com.opensandbox.dhizuku.R
 private val HeaderHeight = 200.dp
 
 /** 顶栏 + 状态栏高度：内容从这里开始，再往上交给渐变遮罩淡出。 */
-private val AppBarInset = 132.dp
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -141,21 +141,6 @@ internal fun AppsScreen(state: AppState) {
             }
         }
 
-        // 顶部渐变遮罩：内容滚到这里逐渐淡出，而不是被一条硬线切断
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(AppBarInset + 32.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                            androidx.compose.ui.graphics.Color.Transparent,
-                        ),
-                    ),
-                ),
-        )
 
         // 浮层头部：折叠成右上角搜索按钮；点击展开并自动聚焦
         Column(Modifier.fillMaxWidth()) {

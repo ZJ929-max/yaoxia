@@ -1,5 +1,6 @@
 package com.opensandbox.dhizuku.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +60,10 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
+
+/** 顶部渐变高度 & 内容起始位置（顶栏 + 状态栏）。 */
+internal val TopFadeHeight = 168.dp
+internal val AppBarInset = 132.dp
 
 /** 主题：只换配色，布局不变——所以"外观"和"玻璃"是两个独立开关。 */
 @Composable
@@ -228,8 +233,11 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                 TopAppBar(
                     title = {
                         Text(
-                            if (tab == 1) stringResource(R.string.apps_count, state.apps.size)
-                            else titles[tab],
+                            when (tab) {
+                                1 -> stringResource(R.string.apps_count, state.apps.size)
+                                2 -> stringResource(R.string.title_profile)
+                                else -> titles[tab]
+                            },
                         )
                     },
                     actions = {
@@ -248,11 +256,10 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                 )
             },
         ) { padding ->
-            Column(
-                Modifier.fillMaxSize().padding(
-                    if (tab == 1) PaddingValues(bottom = padding.calculateBottomPadding())
-                    else padding,
-                ),
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(bottom = padding.calculateBottomPadding()),
             ) {
                 when (tab) {
                     0 -> StatusScreen(state)
@@ -260,6 +267,23 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                     2 -> ProfileScreen(state)
                     else -> SettingsScreen(state)
                 }
+
+                // 统一顶部渐变：内容滚到标题区逐渐淡出，而不是被硬线切断
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(TopFadeHeight)
+                        .align(Alignment.TopCenter)
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.background,
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.82f),
+                                    androidx.compose.ui.graphics.Color.Transparent,
+                                ),
+                            ),
+                        ),
+                )
             }
         }
         }

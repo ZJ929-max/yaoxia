@@ -24,7 +24,7 @@ internal fun SettingsScreen(state: AppState) {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 176.dp),
+            .padding(start = 16.dp, top = AppBarInset + 16.dp, end = 16.dp, bottom = 176.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         GlassCard(Modifier.fillMaxWidth()) {

@@ -57,6 +57,7 @@
     <string name="section_channels">通道</string>
     <string name="apps_count">共 %1$d 个应用</string>
     <string name="apps_empty">还没有列表，先到「状态」页连接并授权。</string>
+    <string name="title_profile">隔离空间</string>
     <string name="profile_title">隔离空间</string>
     <string name="profile_explain">优先用 dhi 的设备所有者身份建「工作资料」；失败会自动回落成 shell 建的「完整次级用户」（隔离够用，但系统里显示为另一个账号）。两条都失败时，下面会写清各自的原因。</string>
     <string name="settings_appearance">外观</string>
