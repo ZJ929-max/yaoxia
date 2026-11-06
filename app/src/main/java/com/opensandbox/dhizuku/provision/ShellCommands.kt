@@ -53,6 +53,10 @@ object ShellCommands {
 
     fun switchUser(userId: Int): String = "am switch-user $userId"
 
+    fun stopUser(userId: Int): String = "am stop-user $userId"
+
+    fun removeUser(userId: Int): String = "pm remove-user $userId"
+
     /**
      * 在指定用户里启动界面，并把前台真正切过去。
      * 只发 am start --user 不会切前台，用户会以为没启动。

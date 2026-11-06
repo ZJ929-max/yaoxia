@@ -72,6 +72,18 @@ internal fun StatusScreen(state: AppState) {
             }
         }
 
+        if (state.missingScopes.isNotEmpty()) {
+            item {
+                GlassCard(Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.status_missing_scopes, state.missingScopes.joinToString(", ")),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        }
+
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SkinButton(onClick = state::connect, enabled = !state.busy) {

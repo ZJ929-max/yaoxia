@@ -134,6 +134,13 @@
     <string name="apps_cancel_select">取消</string>
     <string name="apps_batch_done">已处理 %1$d 个应用</string>
 
+    <string name="profile_delete">删除隔离空间</string>
+    <string name="profile_deleted">已删除隔离空间 user %1$d</string>
+    <string name="dialog_delete_title">删除隔离空间？</string>
+    <string name="dialog_delete_message">会先停用再删除 user %1$d，里面装的应用与数据全部清除，主空间不受影响。</string>
+
+    <string name="status_missing_scopes">还缺这些委派范围，相关操作会被系统拒绝：%1$s</string>
+
     <string name="flag_frozen">❄ </string>
     <string name="flag_uninstall_blocked">🔒 </string>
 </resources>

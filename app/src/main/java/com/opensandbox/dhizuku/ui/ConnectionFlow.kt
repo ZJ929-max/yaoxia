@@ -43,6 +43,10 @@ class ConnectionFlow(
     var shell: ShellChannel? = null
         private set
 
+    /** 还没拿到的委派范围（用于界面提示）。 */
+    fun missingScopes(): List<String> =
+        com.opensandbox.dhizuku.delegation.DelegationScopes.ALL.filter { it !in scopes }
+
     data class ChannelUi(val name: String, val available: Boolean)
 
     fun connect() {

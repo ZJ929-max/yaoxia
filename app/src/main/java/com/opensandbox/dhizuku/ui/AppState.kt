@@ -37,6 +37,7 @@ class AppState(private val context: Context) {
 
     var pendingLaunch by mutableStateOf<AppUi?>(null)
     var pendingSwitchBack by mutableStateOf(false)
+    var pendingDeleteProfile by mutableStateOf(false)
 
     private val connectionFlow: ConnectionFlow by lazy {
         ConnectionFlow(context, async, router, { status = it }, { appsFlow.refresh() })
@@ -65,6 +66,7 @@ class AppState(private val context: Context) {
     val scopes: Set<String> get() = connectionFlow.scopes
     val busy: Boolean get() = connectionFlow.busy
     val shellLabel: String get() = connectionFlow.shellLabel
+    val missingScopes: List<String> get() = connectionFlow.missingScopes()
 
     val apps: List<AppUi> get() = appsFlow.apps
     val busyPackages: Set<String> get() = appsFlow.busyPackages
@@ -94,6 +96,19 @@ class AppState(private val context: Context) {
     fun toggleUninstallBlock(app: AppUi) = appsFlow.toggleUninstallBlock(app)
 
     fun refreshProfileApps() = profileFlow.refresh()
+
+    fun requestDeleteProfile() {
+        pendingDeleteProfile = true
+    }
+
+    fun confirmDeleteProfile() {
+        pendingDeleteProfile = false
+        profileFlow.delete()
+    }
+
+    fun cancelDeleteProfile() {
+        pendingDeleteProfile = false
+    }
 
     fun installIntoProfile(packageName: String) = profileFlow.install(packageName)
 

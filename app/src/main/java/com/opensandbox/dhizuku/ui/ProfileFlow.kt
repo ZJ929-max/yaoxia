@@ -116,6 +116,23 @@ class ProfileFlow(
         })
     }
 
+    /** 删除整个隔离空间（先停用户再删除）。 */
+    fun delete() {
+        val profile = profileApps() ?: return
+        val id = userId ?: return
+        busy = true
+        async.execute({ profile.removeUser(id) }, { outcome ->
+            busy = false
+            if (outcome.isSuccess) {
+                userId = null
+                packages = emptyList()
+                report(context.getString(R.string.profile_deleted, id))
+            } else {
+                report(context.getString(R.string.toast_action_failed, outcome.errorOrNull().orEmpty()))
+            }
+        })
+    }
+
     fun switchBack() {
         val channel = shellProvider() ?: return
         async.execute({

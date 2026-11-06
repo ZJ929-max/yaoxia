@@ -147,6 +147,31 @@ fun SandboxApp(state: AppState) {
         )
     }
 
+    if (state.pendingDeleteProfile) {
+        AlertDialog(
+            onDismissRequest = state::cancelDeleteProfile,
+            title = { Text(stringResource(R.string.dialog_delete_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.dialog_delete_message,
+                        state.profileUserId ?: 0,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = state::confirmDeleteProfile) {
+                    Text(stringResource(R.string.dialog_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = state::cancelDeleteProfile) {
+                    Text(stringResource(R.string.dialog_cancel))
+                }
+            },
+        )
+    }
+
     if (state.pendingSwitchBack) {
         AlertDialog(
             onDismissRequest = state::cancelSwitchToOwner,

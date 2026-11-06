@@ -21,18 +21,12 @@ class ProfileApps(
             "moe.shizuku",
         )
 
-    private val userPattern = Regex("UserInfo\\{(\\d+):([^:}]+):")
+
 
     /** 按名字找已存在的隔离用户（例如上次建好的 user 10）。 */
     fun findUser(name: String): Outcome<Int?> =
         Outcome.catching {
-            val output = run(ShellCommands.LIST_USERS)
-            userPattern
-                .findAll(output)
-                .firstOrNull { it.groupValues[2] == name }
-                ?.groupValues
-                ?.get(1)
-                ?.toIntOrNull()
+            UserListParser.findId(run(ShellCommands.LIST_USERS), name)
         }
 
     fun installed(userId: Int): Outcome<Set<String>> =
@@ -78,6 +72,13 @@ class ProfileApps(
         }
         return null
     }
+
+    /** 删除整个隔离用户：先停再删。 */
+    fun removeUser(userId: Int): Outcome<Unit> =
+        Outcome.catching {
+            runCatching { run(ShellCommands.stopUser(userId)) }
+            run(ShellCommands.removeUser(userId))
+        }
 
     fun launchByMonkey(
         userId: Int,
