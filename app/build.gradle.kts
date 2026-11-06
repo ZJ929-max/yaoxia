@@ -23,6 +23,12 @@ android {
         versionName = versionProperties.getProperty("versionName")
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     buildFeatures {
         buildConfig = true
         compose = true
@@ -61,6 +67,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation("io.github.iamr0s:Dhizuku-API:2.5.4")
     implementation("dev.rikka.shizuku:api:13.0.0")
     // 清单里声明的 rikka.shizuku.ShizukuProvider 在这个包里；只加 api 会导致启动即崩
