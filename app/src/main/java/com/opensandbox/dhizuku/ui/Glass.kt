@@ -2,6 +2,8 @@ package com.opensandbox.dhizuku.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +37,12 @@ import com.kyant.backdrop.shadow.Shadow
 
 val LocalGlassEnabled = staticCompositionLocalOf { false }
 
+/** 玻璃底色透明度，用户可调（0.08 ~ 0.55）。 */
+val LocalGlassAlpha = staticCompositionLocalOf { 0.22f }
+
+/** 背景光晕强度，用户可调（0 ~ 1）。 */
+val LocalGlowStrength = staticCompositionLocalOf { 1f }
+
 /** 折射源：只有背景层（官方示例的做法）。玻璃元素都在层外，才能采到东西。 */
 internal val LocalBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
@@ -55,6 +63,7 @@ fun SandboxSurface(content: @Composable () -> Unit) {
             Color(0xFF10140F),
         )
     )
+    val glowStrength = LocalGlowStrength.current
     val backdrop = rememberLayerBackdrop()
     androidx.compose.runtime.LaunchedEffect(Unit) {
         android.util.Log.i(
@@ -92,9 +101,10 @@ fun SandboxSurface(content: @Composable () -> Unit) {
                         center = Offset(size.width * cx, size.height * cy),
                     )
                 }
-                glow(Color(0xFF6D5BFF).copy(alpha = 0.55f), 0.15f, 0.10f, 0.55f)
-                glow(Color(0xFF00D4B8).copy(alpha = 0.40f), 0.90f, 0.62f, 0.50f)
-                glow(Color(0xFFFF9F0A).copy(alpha = 0.30f), 0.72f, 0.95f, 0.42f)
+                val k = glowStrength
+                glow(Color(0xFF6D5BFF).copy(alpha = 0.55f * k), 0.15f, 0.10f, 0.55f)
+                glow(Color(0xFF00D4B8).copy(alpha = 0.40f * k), 0.90f, 0.62f, 0.50f)
+                glow(Color(0xFFFF9F0A).copy(alpha = 0.30f * k), 0.72f, 0.95f, 0.42f)
             }
         }
 
@@ -144,12 +154,12 @@ fun GlassCard(
 
     if (enabled && backdrop != null) {
         val surface = MaterialTheme.colorScheme.surface
+        val shape = com.kyant.shapes.RoundedRectangle(24.dp)
         Box(
-            modifier.liquidGlass(
-                backdrop = backdrop,
-                shape = com.kyant.shapes.RoundedRectangle(24.dp),
-                tint = surface.copy(alpha = 0.42f),
-            )
+            modifier
+                .clip(shape)
+                .background(surface.copy(alpha = LocalGlassAlpha.current), shape)
+                .border(1.dp, Color.White.copy(alpha = 0.16f), shape)
         ) {
             Column(Modifier.padding(16.dp), content = content)
         }

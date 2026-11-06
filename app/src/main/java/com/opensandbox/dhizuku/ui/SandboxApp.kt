@@ -65,6 +65,8 @@ fun SandboxTheme(
     skin: Skin,
     glassEnabled: Boolean,
     fontFamily: androidx.compose.ui.text.font.FontFamily? = null,
+    glassAlpha: Float = 0.22f,
+    glowStrength: Float = 1f,
     content: @Composable () -> Unit,
 ) {
     val dark = isSystemInDarkTheme()
@@ -99,6 +101,8 @@ fun SandboxTheme(
         ProvideSkin(skin) {
             CompositionLocalProvider(
                 LocalGlassEnabled provides glassEnabled,
+                LocalGlassAlpha provides glassAlpha,
+                LocalGlowStrength provides glowStrength,
                 LocalFontFamily provides fontFamily,
                 LocalSkin provides skin,
                 content = content,

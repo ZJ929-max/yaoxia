@@ -151,3 +151,20 @@ fun TextStyles.withFamily(family: FontFamily?): TextStyles {
         title4 = title4.f(),
     )
 }
+
+/** 视觉参数持久化：让用户能调，而不是写死在代码里。 */
+object UiPrefs {
+    private const val PREF = "open_sandbox_ui"
+    private const val KEY_ALPHA = "glass_alpha"
+    private const val KEY_GLOW = "glow_strength"
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
+
+    fun glassAlpha(context: Context): Float = prefs(context).getFloat(KEY_ALPHA, 0.22f)
+    fun setGlassAlpha(context: Context, value: Float) =
+        prefs(context).edit().putFloat(KEY_ALPHA, value.coerceIn(0.05f, 0.6f)).apply()
+
+    fun glow(context: Context): Float = prefs(context).getFloat(KEY_GLOW, 1f)
+    fun setGlow(context: Context, value: Float) =
+        prefs(context).edit().putFloat(KEY_GLOW, value.coerceIn(0f, 1.5f)).apply()
+}

@@ -55,16 +55,10 @@ fun FloatingTabBar(
             .height(64.dp)
             .then(
                 if (glass) {
-                    Modifier.liquidGlass(
-                        backdrop = backdrop!!,
-                        shape = shape,
-                        tint = surface.copy(alpha = 0.22f),
-                        blurRadius = 8.dp,
-                        lensRadius = 24.dp,
-                        lensOffset = 24.dp,
-                        layerBlock = {},
-                        pulse = { repaint.intValue },
-                    )
+                    Modifier
+                        .clip(shape)
+                        .background(surface.copy(alpha = LocalGlassAlpha.current + 0.06f), shape)
+                        .border(1.dp, Color.White.copy(alpha = 0.20f), shape)
                 } else {
                     Modifier
                         .clip(shape)

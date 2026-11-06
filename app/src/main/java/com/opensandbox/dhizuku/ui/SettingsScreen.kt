@@ -102,6 +102,19 @@ internal fun SettingsScreen(state: AppState) {
                 }
                 SkinSwitch(checked = state.glassEnabled, onCheckedChange = { state.glassEnabled = it })
             }
+            Spacer(Modifier.height(10.dp))
+            Text("玻璃透明度  ${(state.glassAlpha * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+            Slider(
+                value = state.glassAlpha,
+                onValueChange = { state.applyGlassAlpha(it) },
+                valueRange = 0.05f..0.6f,
+            )
+            Text("背景光晕  ${(state.glowStrength * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+            Slider(
+                value = state.glowStrength,
+                onValueChange = { state.applyGlowStrength(it) },
+                valueRange = 0f..1.5f,
+            )
         }
 
         GlassCard(Modifier.fillMaxWidth()) {

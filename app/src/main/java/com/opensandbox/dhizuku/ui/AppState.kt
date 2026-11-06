@@ -34,6 +34,8 @@ class AppState(private val context: Context) {
     var status by mutableStateOf(context.getString(R.string.status_connecting))
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
+    var glassAlpha by mutableStateOf(UiPrefs.glassAlpha(context))
+    var glowStrength by mutableStateOf(UiPrefs.glow(context))
     var font by mutableStateOf(FontPrefs.load(context))
     var harmonyReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.HARMONY))
     var notoReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.NOTO))
@@ -80,6 +82,16 @@ class AppState(private val context: Context) {
     val profileBusy: Boolean get() = profileFlow.busy
 
     // ------------------------------------------------------------------ 动作转发
+
+    fun applyGlassAlpha(value: Float) {
+        glassAlpha = value
+        UiPrefs.setGlassAlpha(context, value)
+    }
+
+    fun applyGlowStrength(value: Float) {
+        glowStrength = value
+        UiPrefs.setGlow(context, value)
+    }
 
     fun chooseFont(choice: AppFont) {
         font = choice

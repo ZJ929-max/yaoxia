@@ -39,7 +39,13 @@ class MainActivity : ComponentActivity() {
                 AppFont.HARMONY -> FontFiles.load(this, DownloadableFont.HARMONY)
                     ?: androidx.compose.ui.text.font.FontFamily.Default
             }
-            SandboxTheme(state.skin, state.glassEnabled, family) {
+            SandboxTheme(
+                skin = state.skin,
+                glassEnabled = state.glassEnabled,
+                fontFamily = family,
+                glassAlpha = state.glassAlpha,
+                glowStrength = state.glowStrength,
+            ) {
                 SandboxApp(state, intent.getIntExtra("tab", 0))
             }
         }
