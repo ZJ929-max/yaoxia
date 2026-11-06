@@ -95,7 +95,7 @@ internal fun AppsScreen(state: AppState) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (selecting) {
-                                Checkbox(checked = checked, onCheckedChange = null)
+                                SkinCheckbox(checked = checked)
                                 Spacer(Modifier.width(8.dp))
                             }
                             Column(Modifier.weight(1f)) {

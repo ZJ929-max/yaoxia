@@ -189,3 +189,49 @@ fun SkinText(
         )
     }
 }
+
+@Composable
+fun SkinCheckbox(checked: Boolean, enabled: Boolean = true, onClick: (() -> Unit)? = null) {
+    if (LocalSkin.current == Skin.MIUI) {
+        MiuixScope {
+            top.yukonga.miuix.kmp.basic.Checkbox(
+                state = if (checked) androidx.compose.ui.state.ToggleableState.On
+                else androidx.compose.ui.state.ToggleableState.Off,
+                onClick = onClick,
+                enabled = enabled,
+            )
+        }
+    } else {
+        androidx.compose.material3.Checkbox(
+            checked = checked,
+            onCheckedChange = { onClick?.invoke() },
+            enabled = enabled,
+        )
+    }
+}
+
+@Composable
+fun SkinSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    modifier: Modifier = Modifier,
+) {
+    if (LocalSkin.current == Skin.MIUI) {
+        MiuixScope {
+            top.yukonga.miuix.kmp.basic.Slider(
+                value = value,
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                modifier = modifier,
+            )
+        }
+    } else {
+        androidx.compose.material3.Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            modifier = modifier,
+        )
+    }
+}

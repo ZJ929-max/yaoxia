@@ -243,7 +243,7 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                         }
                     },
                     colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.18f),
                     ),
                 )
             },

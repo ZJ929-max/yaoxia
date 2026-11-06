@@ -24,7 +24,7 @@ internal fun SettingsScreen(state: AppState) {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 176.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         GlassCard(Modifier.fillMaxWidth()) {
@@ -104,19 +104,19 @@ internal fun SettingsScreen(state: AppState) {
             }
             Spacer(Modifier.height(10.dp))
             Text("玻璃透明度  ${(state.glassAlpha * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
-            Slider(
+            SkinSlider(
                 value = state.glassAlpha,
                 onValueChange = { state.applyGlassAlpha(it) },
                 valueRange = 0.05f..0.6f,
             )
             Text("玻璃模糊  ${state.blurRadius.toInt()} dp", style = MaterialTheme.typography.bodySmall)
-            Slider(
+            SkinSlider(
                 value = state.blurRadius,
                 onValueChange = { state.applyBlur(it) },
                 valueRange = 0f..40f,
             )
             Text("背景光晕  ${(state.glowStrength * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
-            Slider(
+            SkinSlider(
                 value = state.glowStrength,
                 onValueChange = { state.applyGlowStrength(it) },
                 valueRange = 0f..1.5f,
