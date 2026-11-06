@@ -22,7 +22,10 @@ class MainActivity : ComponentActivity() {
             "default" -> state.chooseFont(AppFont.DEFAULT)
             "system" -> state.chooseFont(AppFont.SYSTEM)
         }
-        if (intent.getStringExtra("action") == "downloadfont") state.downloadHarmonyFont()
+        when (intent.getStringExtra("action")) {
+            "downloadfont", "downloadharmony" -> state.downloadHarmonyFont()
+            "downloadnoto" -> state.downloadFont(DownloadableFont.NOTO)
+        }
         when (intent.getStringExtra("skin")) {
             "miui" -> state.skin = Skin.MIUI
             "system" -> state.skin = Skin.SYSTEM
@@ -32,8 +35,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val family = when (state.font) {
                 AppFont.SYSTEM -> androidx.compose.ui.text.font.FontFamily.Default
-                AppFont.DEFAULT -> androidx.compose.ui.text.font.FontFamily.SansSerif
-                AppFont.HARMONY -> HarmonyFont.load(this)
+                AppFont.DEFAULT -> FontFiles.load(this, DownloadableFont.NOTO) ?: defaultFontFamily()
+                AppFont.HARMONY -> FontFiles.load(this, DownloadableFont.HARMONY)
                     ?: androidx.compose.ui.text.font.FontFamily.Default
             }
             SandboxTheme(state.skin, state.glassEnabled, family) {

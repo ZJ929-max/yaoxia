@@ -67,6 +67,9 @@
     <string name="font_harmony_missing">鸿蒙字体未下载（约 8 MB）</string>
     <string name="font_harmony_ready">鸿蒙字体已就绪</string>
     <string name="font_download">下载鸿蒙字体</string>
+    <string name="font_noto_ready">思源黑体已就绪（默认字体的中文字形）</string>
+    <string name="font_noto_missing">思源黑体未下载（约 18 MB，装后「默认字体」的中文才会变）</string>
+    <string name="font_noto_download">下载思源黑体</string>
     <string name="settings_glass">液态玻璃</string>
     <string name="settings_glass_hint">在支持的设备上给卡片加折射效果；低版本自动降级。</string>
 

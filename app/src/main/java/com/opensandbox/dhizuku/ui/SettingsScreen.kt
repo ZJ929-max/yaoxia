@@ -77,6 +77,21 @@ internal fun SettingsScreen(state: AppState) {
                     Text(stringResource(R.string.font_download))
                 }
             }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                stringResource(
+                    if (state.notoReady) R.string.font_noto_ready
+                    else R.string.font_noto_missing
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!state.notoReady) {
+                Spacer(Modifier.height(6.dp))
+                OutlinedButton(
+                    onClick = { state.downloadFont(DownloadableFont.NOTO) },
+                    enabled = !state.fontBusy,
+                ) { Text(stringResource(R.string.font_noto_download)) }
+            }
         }
 
         GlassCard(Modifier.fillMaxWidth()) {

@@ -37,34 +37,48 @@ object FontPrefs {
     }
 }
 
-/** 鸿蒙字体：不打包进 APK，按需下载到 filesDir。 */
-object HarmonyFont {
-    private const val FILE_NAME = "HarmonyOS_SansSC_Regular.ttf"
+/** 可下载字体：不打包进 APK，按需下载到 filesDir。 */
+enum class DownloadableFont(val fileName: String, val label: String, val mirrors: List<String>) {
+    HARMONY(
+        "HarmonyOS_SansSC_Regular.ttf",
+        "鸿蒙字体",
+        listOf(
+            "https://cdn.jsdelivr.net/gh/zhiyuan1i/fonts-harmonyos-sans-cn@main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
+            "https://raw.githubusercontent.com/zhiyuan1i/fonts-harmonyos-sans-cn/main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
+            "https://ghproxy.net/https://raw.githubusercontent.com/zhiyuan1i/fonts-harmonyos-sans-cn/main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
+        ),
+    ),
+    NOTO(
+        "NotoSansSC[wght].ttf",
+        "思源黑体",
+        listOf(
+            "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+        ),
+    ),
+}
 
-    private val MIRRORS = listOf(
-        "https://cdn.jsdelivr.net/gh/zhiyuan1i/fonts-harmonyos-sans-cn@main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
-        "https://raw.githubusercontent.com/zhiyuan1i/fonts-harmonyos-sans-cn/main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
-        "https://ghproxy.net/https://raw.githubusercontent.com/zhiyuan1i/fonts-harmonyos-sans-cn/main/source/usr/share/fonts/truetype/harmonyos-sans/HarmonyOS_SansSC_Regular.ttf",
-    )
+object FontFiles {
+    fun file(context: Context, font: DownloadableFont): File = File(context.filesDir, font.fileName)
 
-    fun file(context: Context): File = File(context.filesDir, FILE_NAME)
-    fun isReady(context: Context): Boolean = file(context).let { it.exists() && it.length() > 1_000_000 }
+    fun isReady(context: Context, font: DownloadableFont): Boolean =
+        file(context, font).let { it.exists() && it.length() > 1_000_000 }
 
-    fun load(context: Context): FontFamily? {
-        if (!isReady(context)) return null
-        return runCatching { FontFamily(Font(file(context))) }.getOrNull()
+    fun load(context: Context, font: DownloadableFont): FontFamily? {
+        if (!isReady(context, font)) return null
+        return runCatching { FontFamily(Font(file(context, font))) }.getOrNull()
     }
 
-    fun download(context: Context): Outcome<Unit> {
-        val target = file(context)
-        val temp = File(context.cacheDir, "$FILE_NAME.part")
+    fun download(context: Context, font: DownloadableFont): Outcome<Unit> {
+        val target = file(context, font)
+        val temp = File(context.cacheDir, font.fileName.replace("[", "_").replace("]", "_") + ".part")
         var lastError = "未知错误"
-        for (url in MIRRORS) {
+        for (url in font.mirrors) {
             try {
                 temp.delete()
                 val connection = (URL(url).openConnection() as HttpURLConnection).apply {
                     connectTimeout = 20_000
-                    readTimeout = 120_000
+                    readTimeout = 180_000
                     instanceFollowRedirects = true
                 }
                 connection.inputStream.use { input -> temp.outputStream().use { input.copyTo(it) } }
@@ -75,7 +89,7 @@ object HarmonyFont {
                 }
                 if (target.exists()) target.delete()
                 if (temp.renameTo(target)) {
-                    android.util.Log.i("YaoxiaFont", "downloaded from $url, ${target.length()} bytes")
+                    android.util.Log.i("YaoxiaFont", "downloaded ${font.name} from $url, ${target.length()} bytes")
                     return Outcome.ok(Unit)
                 }
                 lastError = "无法写入目标文件"
@@ -83,10 +97,15 @@ object HarmonyFont {
                 lastError = "${t.javaClass.simpleName}: ${t.message}"
             }
         }
-        android.util.Log.w("YaoxiaFont", "download failed: $lastError")
+        android.util.Log.w("YaoxiaFont", "download ${font.name} failed: $lastError")
         return Outcome.fail(lastError)
     }
 }
+
+/** 「默认字体」的内置底座：Roboto（Apache-2.0）。中文由系统回退。 */
+fun defaultFontFamily(): FontFamily = FontFamily(
+    Font(com.opensandbox.dhizuku.R.font.roboto_regular, androidx.compose.ui.text.font.FontWeight.Normal),
+)
 
 /** 把字体族套到 Material Typography 的全部样式上。 */
 fun Typography.withFamily(family: FontFamily?): Typography {

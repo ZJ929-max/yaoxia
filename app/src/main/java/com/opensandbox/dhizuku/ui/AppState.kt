@@ -35,7 +35,8 @@ class AppState(private val context: Context) {
     var skin by mutableStateOf(Skin.MATERIAL)
     var glassEnabled by mutableStateOf(true)
     var font by mutableStateOf(FontPrefs.load(context))
-    var harmonyReady by mutableStateOf(HarmonyFont.isReady(context))
+    var harmonyReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.HARMONY))
+    var notoReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.NOTO))
     var fontBusy by mutableStateOf(false)
 
     var pendingLaunch by mutableStateOf<AppUi?>(null)
@@ -85,18 +86,22 @@ class AppState(private val context: Context) {
         FontPrefs.save(context, choice)
     }
 
-    fun downloadHarmonyFont() {
+    fun downloadHarmonyFont() = downloadFont(DownloadableFont.HARMONY)
+
+    fun downloadFont(which: DownloadableFont) {
         if (fontBusy) return
         fontBusy = true
-        status = "正在下载鸿蒙字体…"
-        async.execute({ HarmonyFont.download(context) }, { outcome ->
+        val label = if (which == DownloadableFont.HARMONY) "鸿蒙字体" else "思源黑体"
+        status = "正在下载$label…"
+        async.execute({ FontFiles.download(context, which) }, { outcome ->
             fontBusy = false
-            harmonyReady = HarmonyFont.isReady(context)
+            harmonyReady = FontFiles.isReady(context, DownloadableFont.HARMONY)
+            notoReady = FontFiles.isReady(context, DownloadableFont.NOTO)
             status = if (outcome.isSuccess) {
-                chooseFont(AppFont.HARMONY)
-                "鸿蒙字体已就绪"
+                chooseFont(if (which == DownloadableFont.HARMONY) AppFont.HARMONY else AppFont.DEFAULT)
+                "$label 已就绪"
             } else {
-                "鸿蒙字体下载失败：${outcome.errorOrNull()}"
+                "$label 下载失败：${outcome.errorOrNull()}"
             }
         })
     }
