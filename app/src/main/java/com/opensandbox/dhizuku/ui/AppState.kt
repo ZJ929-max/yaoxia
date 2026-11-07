@@ -16,7 +16,7 @@ import com.opensandbox.dhizuku.apps.FrozenStore
 import com.opensandbox.dhizuku.core.AsyncTaskRunner
 import com.opensandbox.dhizuku.core.Outcome
 import com.opensandbox.dhizuku.platform.CapabilityRouter
-import com.opensandbox.dhizuku.platform.ProviderRegistry
+import com.opensandbox.dhizuku.di.ProviderRegistry
 import com.opensandbox.dhizuku.provision.DhizukuProfileProvisioner
 import com.opensandbox.dhizuku.provision.ShellProfileProvisioner
 
@@ -44,10 +44,12 @@ class AppState(private val context: Context) {
     var blurRadius by mutableStateOf(UiPrefs.blur(context))
     var appsQuery by mutableStateOf("")
     var searchExpanded by mutableStateOf(false)
-    var font by mutableStateOf(FontPrefs.load(context))
-    var harmonyReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.HARMONY))
-    var notoReady by mutableStateOf(FontFiles.isReady(context, DownloadableFont.NOTO))
-    var fontBusy by mutableStateOf(false)
+    private val fonts = FontController(context, async, { status = it }) { }
+
+    val font: AppFont get() = fonts.choice
+    val harmonyReady: Boolean get() = fonts.harmonyReady
+    val notoReady: Boolean get() = fonts.notoReady
+    val fontBusy: Boolean get() = fonts.busy
 
     var pendingLaunch by mutableStateOf<AppUi?>(null)
     var pendingSwitchBack by mutableStateOf(false)
@@ -106,39 +108,20 @@ class AppState(private val context: Context) {
         UiPrefs.setGlow(context, value)
     }
 
-    fun chooseFont(choice: AppFont) {
-        font = choice
-        FontPrefs.save(context, choice)
-    }
+    fun downloadHarmonyFont() = fonts.downloadHarmony()
 
-    fun downloadHarmonyFont() = downloadFont(DownloadableFont.HARMONY)
+    fun downloadFont(which: DownloadableFont) = fonts.download(which)
 
-    fun downloadFont(which: DownloadableFont) {
-        if (fontBusy) return
-        fontBusy = true
-        val label = if (which == DownloadableFont.HARMONY) "鸿蒙字体" else "思源黑体"
-        status = "正在下载$label…"
-        async.execute({ FontFiles.download(context, which) }, { outcome ->
-            fontBusy = false
-            harmonyReady = FontFiles.isReady(context, DownloadableFont.HARMONY)
-            notoReady = FontFiles.isReady(context, DownloadableFont.NOTO)
-            status = if (outcome.isSuccess) {
-                chooseFont(if (which == DownloadableFont.HARMONY) AppFont.HARMONY else AppFont.DEFAULT)
-                "$label 已就绪"
-            } else {
-                "$label 下载失败：${outcome.errorOrNull()}"
-            }
-        })
-    }
+    fun chooseFont(choice: AppFont) = fonts.choose(choice)
 
     fun runSelfTest() {
-        async.execute({
-            val results = com.opensandbox.dhizuku.core.SelfTest(context, router).run()
-            Outcome.ok(results)
-        }, { outcome ->
-            val results = outcome.valueOrNull().orEmpty()
-            status = "自检：${results.count { it.ok }}/${results.size} 通过"
-        })
+        async.execute(
+            { Outcome.ok(com.opensandbox.dhizuku.di.SelfTest(context, router).run()) },
+            { outcome ->
+                val results = outcome.valueOrNull().orEmpty()
+                status = "自检：${results.count { it.ok }}/${results.size} 通过"
+            },
+        )
     }
 
     fun connect() = connectionFlow.connect()

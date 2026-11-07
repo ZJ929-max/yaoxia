@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberCanvasBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
@@ -54,9 +53,6 @@ val LocalBlurRadius = staticCompositionLocalOf { 0f }
 /** 折射源：只有背景层（官方示例的做法）。玻璃元素都在层外，才能采到东西。 */
 internal val LocalBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
-/** 卡片用：画布折射源，绘制在自身坐标系里，不会因层偏移错位。 */
-internal val LocalCardBackdrop = staticCompositionLocalOf<Backdrop?> { null }
-
 /**
  * 背景 + 折射源。
  * 关键：`layerBackdrop` 只挂在「背景」这一个节点上，
@@ -79,19 +75,6 @@ fun SandboxSurface(content: @Composable () -> Unit) {
             "sdk=${android.os.Build.VERSION.SDK_INT} " +
                 "renderEffect=${com.kyant.backdrop.isRenderEffectSupported()} " +
                 "runtimeShader=${com.kyant.backdrop.isRuntimeShaderSupported()}",
-        )
-    }
-    val cardBackdrop = rememberCanvasBackdrop {
-        drawRect(brush = gradient)
-        drawCircle(
-            color = Color(0xFF6D5BFF).copy(alpha = 0.30f),
-            radius = size.minDimension * 0.5f,
-            center = Offset(size.width * 0.15f, size.height * 0.10f),
-        )
-        drawCircle(
-            color = Color(0xFF00D4B8).copy(alpha = 0.20f),
-            radius = size.minDimension * 0.42f,
-            center = Offset(size.width * 0.90f, size.height * 0.62f),
         )
     }
 
@@ -118,7 +101,6 @@ fun SandboxSurface(content: @Composable () -> Unit) {
 
         CompositionLocalProvider(
             LocalBackdrop provides backdrop,
-            LocalCardBackdrop provides cardBackdrop,
             content = content,
         )
     }

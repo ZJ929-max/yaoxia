@@ -66,64 +66,7 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
-/** 顶部渐变高度 & 内容起始位置（顶栏 + 状态栏）。 */
-internal val TopFadeHeight = 168.dp
-internal val AppBarInset = 132.dp
-
-/** 主题：只换配色，布局不变——所以"外观"和"玻璃"是两个独立开关。 */
-@Composable
-fun SandboxTheme(
-    skin: Skin,
-    glassEnabled: Boolean,
-    fontFamily: androidx.compose.ui.text.font.FontFamily? = null,
-    glassAlpha: Float = 0.22f,
-    glowStrength: Float = 1f,
-    blurRadius: Float = 0f,
-    content: @Composable () -> Unit,
-) {
-    val dark = isSystemInDarkTheme()
-    val base = if (dark) darkColorScheme() else lightColorScheme()
-
-    val colors =
-        when (skin) {
-            Skin.SYSTEM -> base
-
-            Skin.MATERIAL -> {
-                base
-            }
-
-            Skin.MIUI -> {
-                if (dark) {
-                    base.copy(
-                        primary = Color(0xFF9EC0FF),
-                        primaryContainer = Color(0xFF00306B),
-                        onPrimaryContainer = Color(0xFFDCE8FF),
-                    )
-                } else {
-                    base.copy(
-                        primary = Color(0xFF3482FF),
-                        primaryContainer = Color(0xFFDCE8FF),
-                        onPrimaryContainer = Color(0xFF00174A),
-                    )
-                }
-            }
-        }
-
-    MaterialTheme(colorScheme = colors, typography = androidx.compose.material3.Typography().withFamily(fontFamily)) {
-        ProvideSkin(skin) {
-            CompositionLocalProvider(
-                LocalGlassEnabled provides glassEnabled,
-                LocalGlassAlpha provides glassAlpha,
-                LocalGlowStrength provides glowStrength,
-                LocalBlurRadius provides blurRadius,
-                LocalFontFamily provides fontFamily,
-                LocalSkin provides skin,
-                content = content,
-            )
-        }
-    }
-}
-
+/** 主界面：四个页面 + 浮层导航栏 + 全局顶部渐变。 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SandboxApp(state: AppState, initialTab: Int = 0) {
