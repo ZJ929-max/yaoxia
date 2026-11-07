@@ -61,12 +61,16 @@ class MainActivity : ComponentActivity() {
                         if (darkTheme) 0 else android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                 }
             }
-            val family = when (state.font) {
-                AppFont.SYSTEM -> androidx.compose.ui.text.font.FontFamily.Default
-                AppFont.DEFAULT -> FontFiles.load(this, DownloadableFont.NOTO) ?: defaultFontFamily()
-                AppFont.HARMONY -> FontFiles.load(this, DownloadableFont.HARMONY)
-                    ?: androidx.compose.ui.text.font.FontFamily.Default
-            }
+            // 只在字体选择变化时构建一次：FontFamily 每次新建都会让全部文字重新排版、重新栅格化
+            val family =
+                androidx.compose.runtime.remember(state.font) {
+                    when (state.font) {
+                        AppFont.SYSTEM -> androidx.compose.ui.text.font.FontFamily.Default
+                        AppFont.DEFAULT -> FontFiles.load(this, DownloadableFont.NOTO) ?: defaultFontFamily()
+                        AppFont.HARMONY -> FontFiles.load(this, DownloadableFont.HARMONY)
+                            ?: androidx.compose.ui.text.font.FontFamily.Default
+                    }
+                }
             SandboxTheme(
                 skin = state.skin,
                 glassEnabled = state.glassEnabled,

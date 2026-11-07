@@ -57,8 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.opensandbox.dhizuku.R
 import kotlinx.coroutines.delay
 
@@ -131,9 +129,6 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
     val density = LocalDensity.current
 
 
-    // 内容层：给悬浮导航胶囊做折射源，让它能「透」出下面滚动的列表
-    val contentBackdrop = rememberLayerBackdrop()
-
     SandboxSurface {
         Box(Modifier.fillMaxSize()) {
             // 内容铺满整屏；滚到标题区时由 fadeTopEdge 渐隐化开，而不是被一条硬边切掉
@@ -141,7 +136,6 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .layerBackdrop(contentBackdrop)
                     .topMask(maskHeight),
             ) {
                 val topInset = maskHeight
@@ -177,7 +171,6 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
                         state.appsQuery = ""
                     }
                 },
-                backdropOverride = contentBackdrop,
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)

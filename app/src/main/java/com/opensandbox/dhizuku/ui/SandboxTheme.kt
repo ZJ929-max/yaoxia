@@ -80,9 +80,24 @@ fun SandboxTheme(
     val dark = isSystemInDarkTheme()
     val base = if (dark) darkColorScheme() else lightColorScheme()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // 「跟随系统」用系统取色（Android 12+），低版本回落到 Material 3 默认色
+    val systemColors =
+        remember(dark, context) {
+            if (android.os.Build.VERSION.SDK_INT >= 31) {
+                if (dark) {
+                    androidx.compose.material3.dynamicDarkColorScheme(context)
+                } else {
+                    androidx.compose.material3.dynamicLightColorScheme(context)
+                }
+            } else {
+                base
+            }
+        }
+
     val colors =
         when (skin) {
-            Skin.SYSTEM -> base
+            Skin.SYSTEM -> systemColors
 
             Skin.MATERIAL -> {
                 base
@@ -105,23 +120,25 @@ fun SandboxTheme(
             }
         }
 
-    MaterialTheme(colorScheme = colors, typography = androidx.compose.material3.Typography().withFamily(fontFamily)) {
+    val typography =
+        androidx.compose.runtime.remember(fontFamily) {
+            androidx.compose.material3.Typography().withFamily(fontFamily)
+        }
+    MaterialTheme(colorScheme = colors, typography = typography) {
         // 很多 Text 不写 color，靠 LocalContentColor 兜底；它的默认值是纯黑，
         // 深色模式下就变成「黑字画在深色玻璃上」——这里统一钉到 onBackground。
         CompositionLocalProvider(
             androidx.compose.material3.LocalContentColor provides colors.onBackground,
         ) {
-        ProvideSkin(skin) {
-            CompositionLocalProvider(
+        CompositionLocalProvider(
                 LocalGlassEnabled provides glassEnabled,
                 LocalGlassAlpha provides glassAlpha,
                 LocalGlowStrength provides glowStrength,
                 LocalBlurRadius provides blurRadius,
                 LocalFontFamily provides fontFamily,
                 LocalSkin provides skin,
-                content = content,
-            )
-        }
+            content = content,
+        )
         }
     }
 }

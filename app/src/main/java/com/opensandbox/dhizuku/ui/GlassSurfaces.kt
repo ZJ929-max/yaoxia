@@ -155,7 +155,7 @@ fun Modifier.glassCapsule(
         effects = {
             if (dark) vibrancy()
             blur(blurPx)
-            lens(lensPx, lensOffsetPx, chromaticAberration = true)
+            lens(lensPx, lensOffsetPx, chromaticAberration = false)
         },
         highlight = { Highlight.Default.copy(alpha = if (dark) 0.30f else 0.55f) },
         shadow = { Shadow(alpha = 0.16f) },

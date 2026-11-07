@@ -27,15 +27,6 @@ import top.yukonga.miuix.kmp.basic.Switch as MiuixSwitch
 /** 当前皮肤，由根部提供。 */
 val LocalSkin = staticCompositionLocalOf { Skin.MATERIAL }
 
-/** 小米皮肤下用 Miuix 的主题包一层，Material 皮肤下不动。 */
-@Composable
-fun ProvideSkin(
-    skin: Skin,
-    content: @Composable () -> Unit,
-) {
-    content()
-}
-
 /** 只把 Miuix 组件包进它自己的主题，避免接管整页 Material 的颜色。 */
 @Composable
 fun MiuixScope(content: @Composable () -> Unit) {
@@ -100,33 +91,6 @@ fun SkinSwitch(
 }
 
 @Composable
-fun SkinLabel(text: String) = Text(text)
-
-@Composable
-fun SkinCard(
-    modifier: Modifier = Modifier,
-    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
-) {
-    if (LocalSkin.current == Skin.MIUI) {
-        MiuixScope {
-            androidx.compose.foundation.layout.Box(
-                modifier
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                    .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
-            ) { androidx.compose.foundation.layout.Column(content = content) }
-        }
-    } else {
-        androidx.compose.material3.Card(modifier = modifier) {
-            androidx.compose.foundation.layout.Column(
-                androidx.compose.ui.Modifier.padding(16.dp),
-                content = content,
-            )
-        }
-    }
-}
-
-@Composable
 fun SkinDivider() {
     if (LocalSkin.current == Skin.MIUI) {
         MiuixScope {
@@ -136,24 +100,6 @@ fun SkinDivider() {
         }
     } else {
         androidx.compose.material3.HorizontalDivider()
-    }
-}
-
-@Composable
-fun SkinSectionTitle(text: String) {
-    if (LocalSkin.current == Skin.MIUI) {
-        MiuixScope {
-            top.yukonga.miuix.kmp.basic.SmallTitle(
-                text = text,
-                textColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-            )
-        }
-    } else {
-        androidx.compose.material3.Text(
-            text,
-            style = androidx.compose.material3.MaterialTheme.typography.titleSmall,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-        )
     }
 }
 

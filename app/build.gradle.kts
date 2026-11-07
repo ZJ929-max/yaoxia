@@ -85,9 +85,6 @@ dependencies {
 
     // 小米 HyperOS 风格组件（Apache-2.0）
     implementation("top.yukonga.miuix.kmp:miuix-ui:0.9.4")
-    // 液态玻璃（Apache-2.0）
-    implementation("dev.chrisbanes.haze:haze:1.7.3")
-    implementation("dev.chrisbanes.haze:haze-materials:1.7.3")
 
     implementation("io.github.kyant0:backdrop:2.0.1")
     implementation("io.github.kyant0:shapes:1.2.1")
