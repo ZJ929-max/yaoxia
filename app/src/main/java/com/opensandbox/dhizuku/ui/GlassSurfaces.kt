@@ -42,16 +42,16 @@ import com.kyant.shapes.RoundedRectangle
 internal fun glassTint(): Color {
     val cs = MaterialTheme.colorScheme
     return if (isSystemInDarkTheme()) {
-        cs.surface.copy(alpha = (0.16f + LocalGlassAlpha.current * 0.95f).coerceIn(0.16f, 0.62f))
+        cs.surface.copy(alpha = (0.08f + LocalGlassAlpha.current * 0.90f).coerceIn(0.08f, 0.58f))
     } else {
-        cs.surface.copy(alpha = (0.08f + LocalGlassAlpha.current * 0.62f).coerceIn(0.08f, 0.48f))
+        cs.surface.copy(alpha = (0.06f + LocalGlassAlpha.current * 0.85f).coerceIn(0.06f, 0.52f))
     }
 }
 
 /** 模糊半径：浅色默认略重一点，才看得出「磨砂」而不是「透明」。 */
 @Composable
 internal fun glassBlurDp(): Float {
-    val base = if (isSystemInDarkTheme()) 12f else 24f
+    val base = if (isSystemInDarkTheme()) 8f else 10f
     return base + LocalBlurRadius.current
 }
 
@@ -140,7 +140,8 @@ fun Modifier.glassCapsule(
     capsule: Boolean = false,
 ): Modifier {
     if (!LocalGlassEnabled.current || backdrop == null) return this
-    val tint = glassTint()
+    // 胶囊是导航控件，字必须在任何背景上都读得出来：底色比卡片多一层，但仍然透光
+    val tint = glassTint().let { it.copy(alpha = (it.alpha + 0.30f).coerceAtMost(0.72f)) }
     val dark = isSystemInDarkTheme()
     val density = androidx.compose.ui.platform.LocalDensity.current
     val blurPx = with(density) { (glassBlurDp() * 0.6f).dp.toPx() }

@@ -106,6 +106,11 @@ fun SandboxTheme(
         }
 
     MaterialTheme(colorScheme = colors, typography = androidx.compose.material3.Typography().withFamily(fontFamily)) {
+        // 很多 Text 不写 color，靠 LocalContentColor 兜底；它的默认值是纯黑，
+        // 深色模式下就变成「黑字画在深色玻璃上」——这里统一钉到 onBackground。
+        CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides colors.onBackground,
+        ) {
         ProvideSkin(skin) {
             CompositionLocalProvider(
                 LocalGlassEnabled provides glassEnabled,
@@ -116,6 +121,7 @@ fun SandboxTheme(
                 LocalSkin provides skin,
                 content = content,
             )
+        }
         }
     }
 }

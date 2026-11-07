@@ -130,13 +130,6 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
     var headerHeight by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
 
-    // 页面把「滚进去多少」写回来，顶栏据此决定雾气浓度（静止时为零）
-    val scrollProgress = remember { mutableStateOf(0f) }
-    val smoothProgress by androidx.compose.animation.core.animateFloatAsState(
-        scrollProgress.value,
-        animationSpec = androidx.compose.animation.core.tween(180),
-        label = "topFrost",
-    )
 
     // 内容层：给悬浮导航胶囊做折射源，让它能「透」出下面滚动的列表
     val contentBackdrop = rememberLayerBackdrop()
@@ -144,25 +137,21 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
     SandboxSurface {
         Box(Modifier.fillMaxSize()) {
             // 内容铺满整屏；滚到标题区时由 fadeTopEdge 渐隐化开，而不是被一条硬边切掉
-            Box(Modifier.fillMaxSize().layerBackdrop(contentBackdrop)) {
-                androidx.compose.runtime.CompositionLocalProvider(
-                    LocalScrollProgress provides scrollProgress,
-                ) {
-                    val topInset = headerHeight
-                    when (tab) {
-                        0 -> StatusScreen(state, topInset, bottomInset)
-                        1 -> AppsScreen(state, topInset, bottomInset)
-                        2 -> ProfileScreen(state, topInset, bottomInset)
-                        else -> SettingsScreen(state, topInset, bottomInset)
-                    }
+            val maskHeight = headerHeight + Metrics.fadeRamp
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .layerBackdrop(contentBackdrop)
+                    .topMask(maskHeight),
+            ) {
+                val topInset = maskHeight
+                when (tab) {
+                    0 -> StatusScreen(state, topInset, bottomInset)
+                    1 -> AppsScreen(state, topInset, bottomInset)
+                    2 -> ProfileScreen(state, topInset, bottomInset)
+                    else -> SettingsScreen(state, topInset, bottomInset)
                 }
             }
-
-            TopFrostBand(
-                height = headerHeight + Metrics.fadeRamp,
-                progress = smoothProgress,
-                backdrop = contentBackdrop,
-            )
 
             AppHeader(
                 title = titles[tab],

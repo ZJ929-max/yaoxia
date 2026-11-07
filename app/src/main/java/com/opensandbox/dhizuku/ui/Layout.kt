@@ -97,10 +97,10 @@ internal fun slotShape(slot: RowSlot, corner: Dp = Metrics.cardCorner): Shape =
 internal fun listRowColor(): Color {
     val surface = MaterialTheme.colorScheme.surface
     return if (isSystemInDarkTheme()) {
-        surface.copy(alpha = (0.14f + LocalGlassAlpha.current * 1.15f).coerceIn(0.14f, 0.60f))
+        surface.copy(alpha = (0.10f + LocalGlassAlpha.current * 0.95f).coerceIn(0.10f, 0.55f))
     } else {
         // 浅色：留一点透明，行底能透出背景光斑（磨砂感），文字仍是深色，对比度够
-        surface.copy(alpha = (0.34f + LocalGlassAlpha.current * 0.9f).coerceIn(0.34f, 0.86f))
+        surface.copy(alpha = (0.18f + LocalGlassAlpha.current * 0.95f).coerceIn(0.18f, 0.78f))
     }
 }
 
@@ -155,13 +155,32 @@ internal fun Modifier.alphaMask(brush: Brush): Modifier =
         canvas.restore()
     }
 
-/** 页面把「内容滚进去多少」写回来，顶栏据此决定雾气的浓度——静止时一点雾气都没有。 */
-internal val LocalScrollProgress = staticCompositionLocalOf<MutableState<Float>?> { null }
-
-@Composable
-internal fun ReportScrollProgress(index: Int, offset: Int) {
-    val reporter = LocalScrollProgress.current ?: return
-    val threshold = with(LocalDensity.current) { Metrics.frostDistance.toPx() }
-    val progress = if (index > 0) 1f else (offset / threshold).coerceIn(0f, 1f)
-    SideEffect { reporter.value = progress }
-}
+/**
+ * 顶栏遮蔽：只扣 alpha，不铺任何颜色。
+ *
+ * 一条固定的平滑曲线就够了——前段完全透明，最后一段把内容化进背景。
+ * 之所以不能铺底色：背景是极光，任何 `background` 色的渐变色带都会变成一块死板的板子。
+ */
+internal fun Modifier.topMask(height: Dp): Modifier =
+    drawWithContent {
+        val fadePx = height.toPx()
+        if (fadePx <= 0f) {
+            drawContent()
+            return@drawWithContent
+        }
+        val canvas = drawContext.canvas
+        canvas.saveLayer(Rect(0f, 0f, size.width, size.height), Paint())
+        drawContent()
+        drawRect(
+            brush = Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.55f to Color.Transparent,
+                0.82f to Color.Black.copy(alpha = 0.55f),
+                1f to Color.Black,
+                startY = 0f,
+                endY = fadePx,
+            ),
+            blendMode = BlendMode.DstIn,
+        )
+        canvas.restore()
+    }

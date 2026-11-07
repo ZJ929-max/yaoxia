@@ -62,50 +62,6 @@ import kotlinx.coroutines.delay
 
 /** 顶栏 / 搜索框 / 通用弹窗：骨架之外的那层「外壳」。 */
 
-/**
- * 顶栏雾气带：只有当内容真的滚到标题下面才出现，浓度跟着滚动距离走。
- * 静止时完全不存在（列表第一行紧贴顶栏下沿），滚动时才把后景糊成玻璃——
- * 比固定的一条渐变遮罩「活」，也不会在没内容可挡的时候凭空压一条色带。
- */
-@Composable
-internal fun TopFrostBand(
-    height: Dp,
-    progress: Float,
-    backdrop: com.kyant.backdrop.Backdrop?,
-) {
-    if (backdrop == null || progress <= 0.01f) return
-    val density = LocalDensity.current
-    // 用户在外观里调的「玻璃模糊」也作用到这条雾气带上，不再是写死的常数
-    val blurPx = with(density) { (4.dp + 22.dp * progress + LocalBlurRadius.current.dp * 0.6f).toPx() }
-    val tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.30f + 0.55f * progress)
-
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(height)
-            .alphaMask(
-                Brush.verticalGradient(
-                    0f to Color.Black,
-                    0.66f to Color.Black,
-                    1f to Color.Transparent,
-                ),
-            ),
-    ) {
-        // 先把后景糊掉……
-        Box(
-            Modifier
-                .fillMaxSize()
-                .drawBackdrop(
-                    backdrop = backdrop,
-                    shape = { com.kyant.shapes.RoundedRectangle(0.dp) },
-                    effects = { blur(blurPx) },
-                    onDrawSurface = {},
-                ),
-        )
-        // ……再压一层半透明底色，标题区才不会和正文叠字
-        Box(Modifier.fillMaxSize().background(tint))
-    }
-}
 @Composable
 internal fun AppDialog(
     state: AppState,
