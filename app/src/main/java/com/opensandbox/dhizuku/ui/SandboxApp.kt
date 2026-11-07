@@ -137,7 +137,7 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
     SandboxSurface {
         Box(Modifier.fillMaxSize()) {
             // 内容铺满整屏；滚到标题区时由 fadeTopEdge 渐隐化开，而不是被一条硬边切掉
-            val maskHeight = headerHeight + Metrics.fadeRamp
+            val maskHeight = headerHeight + 4.dp
             Box(
                 Modifier
                     .fillMaxSize()

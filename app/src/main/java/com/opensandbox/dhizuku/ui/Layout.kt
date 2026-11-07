@@ -174,8 +174,8 @@ internal fun Modifier.topMask(height: Dp): Modifier =
         drawRect(
             brush = Brush.verticalGradient(
                 0f to Color.Transparent,
-                0.55f to Color.Transparent,
-                0.82f to Color.Black.copy(alpha = 0.55f),
+                0.78f to Color.Transparent,
+                0.90f to Color.Black.copy(alpha = 0.55f),
                 1f to Color.Black,
                 startY = 0f,
                 endY = fadePx,

@@ -50,42 +50,61 @@ val LocalGlassEnabled = staticCompositionLocalOf { false }
  */
 data class GlassPalette(
     val base: List<Color>,
-    val glows: List<Color>,
+    val blobs: List<Glow>,
     val border: Color,
     val tint: Color,
 )
 
+/** 一颗光斑：颜色 + 圆心（相对屏幕宽高的比例）+ 半径（相对短边的比例）。 */
+data class Glow(
+    val color: Color,
+    val cx: Float,
+    val cy: Float,
+    val r: Float,
+)
+
+/** 梦幻泡泡的三个品牌色：青紫 / 青绿 / 琥珀。这是设计标识，不随皮肤变。 */
+private val BubbleIndigo = Color(0xFF6D5BFF)
+private val BubbleTeal = Color(0xFF00D4B8)
+private val BubbleAmber = Color(0xFFFF9F0A)
+
 @Composable
 fun rememberGlassPalette(): GlassPalette {
     val cs = MaterialTheme.colorScheme
-    val dark = isSystemInDarkTheme()
+    val dark = androidx.compose.foundation.isSystemInDarkTheme()
     return remember(cs, dark) {
         if (dark) {
+            // 原版「梦幻泡泡」：近黑底 + 三颗高饱和光斑
             GlassPalette(
-                base = listOf(cs.background, cs.surfaceVariant.copy(alpha = 0.45f), cs.background),
-                glows =
+                base =
                     listOf(
-                        cs.primary.copy(alpha = 0.42f),
-                        cs.tertiary.copy(alpha = 0.30f),
-                        cs.secondary.copy(alpha = 0.22f),
+                        Color(0xFF0B0D0A),
+                        Color(0xFF151A12),
+                        Color(0xFF10140F),
+                    ),
+                blobs =
+                    listOf(
+                        Glow(BubbleIndigo.copy(alpha = 0.55f), 0.15f, 0.10f, 0.55f),
+                        Glow(BubbleTeal.copy(alpha = 0.40f), 0.90f, 0.62f, 0.50f),
+                        Glow(BubbleAmber.copy(alpha = 0.30f), 0.72f, 0.95f, 0.42f),
                     ),
                 border = cs.onSurface.copy(alpha = 0.16f),
                 tint = cs.surface.copy(alpha = 0.22f),
             )
         } else {
-            // 浅色：近白底 + 淡紫/淡青染色，光斑肉眼可见但不脏
+            // 浅色：同一组色相，压低浓度，底色保持近白
             GlassPalette(
                 base =
                     listOf(
-                        cs.primary.copy(alpha = 0.28f).compositeOver(cs.surface),
-                        cs.surface,
-                        cs.tertiary.copy(alpha = 0.30f).compositeOver(cs.surface),
+                        Color(0xFFFDFCFA),
+                        Color(0xFFF3F1F7),
+                        Color(0xFFFBF9F6),
                     ),
-                glows =
+                blobs =
                     listOf(
-                        cs.primary.copy(alpha = 0.58f),
-                        cs.tertiary.copy(alpha = 0.46f),
-                        cs.secondary.copy(alpha = 0.34f),
+                        Glow(BubbleIndigo.copy(alpha = 0.22f), 0.15f, 0.10f, 0.55f),
+                        Glow(BubbleTeal.copy(alpha = 0.16f), 0.90f, 0.62f, 0.50f),
+                        Glow(BubbleAmber.copy(alpha = 0.12f), 0.72f, 0.95f, 0.42f),
                     ),
                 border = Color.White.copy(alpha = 0.85f),
                 tint = cs.surface.copy(alpha = 0.30f),
@@ -131,12 +150,13 @@ fun SandboxSurface(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.fillMaxSize().background(gradient).layerBackdrop(backdrop)) {
             Canvas(Modifier.fillMaxSize()) {
-                fun glow(color: Color, cx: Float, cy: Float, r: Float) {
-                    val center = Offset(size.width * cx, size.height * cy)
-                    val radius = size.minDimension * r
+                val k = glowStrength
+                palette.blobs.forEach { blob ->
+                    val center = Offset(size.width * blob.cx, size.height * blob.cy)
+                    val radius = size.minDimension * blob.r
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(color, Color.Transparent),
+                            colors = listOf(blob.color.copy(alpha = blob.color.alpha * k), Color.Transparent),
                             center = center,
                             radius = radius,
                         ),
@@ -144,10 +164,6 @@ fun SandboxSurface(content: @Composable () -> Unit) {
                         center = center,
                     )
                 }
-                val k = glowStrength
-                glow(palette.glows[0].copy(alpha = palette.glows[0].alpha * k), 0.16f, 0.10f, 0.40f)
-                glow(palette.glows[1].copy(alpha = palette.glows[1].alpha * k), 0.88f, 0.56f, 0.36f)
-                glow(palette.glows[2].copy(alpha = palette.glows[2].alpha * k), 0.66f, 0.94f, 0.30f)
             }
         }
 
