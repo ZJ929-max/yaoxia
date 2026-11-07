@@ -40,6 +40,25 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+            androidx.compose.runtime.LaunchedEffect(darkTheme) {
+                val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                controller.isAppearanceLightStatusBars = !darkTheme
+                controller.isAppearanceLightNavigationBars = !darkTheme
+                if (android.os.Build.VERSION.SDK_INT >= 30) {
+                    window.insetsController?.setSystemBarsAppearance(
+                        if (darkTheme) 0 else
+                            (android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                                android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS),
+                        android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+                            android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS,
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility =
+                        if (darkTheme) 0 else android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                }
+            }
             val family = when (state.font) {
                 AppFont.SYSTEM -> androidx.compose.ui.text.font.FontFamily.Default
                 AppFont.DEFAULT -> FontFiles.load(this, DownloadableFont.NOTO) ?: defaultFontFamily()

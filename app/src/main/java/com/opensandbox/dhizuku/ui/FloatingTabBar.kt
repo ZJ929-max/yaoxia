@@ -53,6 +53,8 @@ fun FloatingTabBar(
 
     val repaint = remember { androidx.compose.runtime.mutableIntStateOf(0) }
     val backdrop = backdropOverride ?: LocalBackdrop.current
+    val glassBorder = LocalGlassPalette.current?.border
+        ?: MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
     val glass = LocalGlassEnabled.current && backdrop != null
 
     Row(
@@ -78,12 +80,12 @@ fun FloatingTabBar(
                                 )
                             } else Modifier
                         )
-                        .border(1.dp, Color.White.copy(alpha = 0.20f), shape)
+                        .border(1.dp, glassBorder, shape)
                 } else {
                     Modifier
                         .clip(shape)
                         .background(surface.copy(alpha = 0.88f))
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), shape)
+                        .border(1.dp, glassBorder, shape)
                 }
             ),
         horizontalArrangement = Arrangement.SpaceEvenly,
