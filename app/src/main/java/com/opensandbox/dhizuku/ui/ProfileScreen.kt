@@ -7,7 +7,7 @@ package com.opensandbox.dhizuku.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,7 +23,7 @@ import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
 @Composable
-internal fun ProfileScreen(state: AppState) {
+internal fun ProfileScreen(state: AppState, bottomInset: androidx.compose.ui.unit.Dp) {
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleMedium)
@@ -56,7 +56,6 @@ internal fun ProfileScreen(state: AppState) {
             GlassCard(Modifier.fillMaxWidth()) {
                 Text(
                     state.status,
-                    Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -91,50 +90,52 @@ internal fun ProfileScreen(state: AppState) {
             return@Column
         }
 
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 176.dp)) {
-            items(
-                state.apps.filter { app ->
-                    val installed = app.packageName in state.profileApps
-                    when (filter) {
-                        1 -> installed
-                        2 -> !installed
-                        else -> true
-                    }
-                },
-                key = { it.packageName },
-            ) { app ->
+        val listed =
+            state.apps.filter { app ->
                 val installed = app.packageName in state.profileApps
-                Column {
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            SkinText(app.label, fontWeight = FontWeight.Medium)
-                            Text(
-                                if (installed) {
-                                    stringResource(R.string.profile_state_installed)
-                                } else {
-                                    stringResource(R.string.profile_state_absent)
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                when (filter) {
+                    1 -> installed
+                    2 -> !installed
+                    else -> true
+                }
+            }
+
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding =
+                PaddingValues(
+                    start = Metrics.pageHorizontal,
+                    top = 8.dp,
+                    end = Metrics.pageHorizontal,
+                    bottom = bottomInset + 16.dp,
+                ),
+        ) {
+            itemsIndexed(listed, key = { _, app -> app.packageName }) { index, app ->
+                val installed = app.packageName in state.profileApps
+                ListRow(slot = rowSlot(index, listed.size)) {
+                    Column(Modifier.weight(1f)) {
+                        SkinText(app.label, fontWeight = FontWeight.Medium)
+                        Text(
+                            stringResource(
+                                if (installed) R.string.profile_state_installed
+                                else R.string.profile_state_absent,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (installed) {
+                        TextButton(onClick = { state.requestLaunchInProfile(app) }) {
+                            Text(stringResource(R.string.profile_open))
                         }
-                        if (installed) {
-                            TextButton(onClick = { state.requestLaunchInProfile(app) }) {
-                                Text(stringResource(R.string.profile_open))
-                            }
-                            TextButton(onClick = { state.removeFromProfile(app.packageName) }) {
-                                Text(stringResource(R.string.profile_remove))
-                            }
-                        } else {
-                            TextButton(onClick = { state.installIntoProfile(app.packageName) }) {
-                                Text(stringResource(R.string.profile_install))
-                            }
+                        TextButton(onClick = { state.removeFromProfile(app.packageName) }) {
+                            Text(stringResource(R.string.profile_remove))
+                        }
+                    } else {
+                        TextButton(onClick = { state.installIntoProfile(app.packageName) }) {
+                            Text(stringResource(R.string.profile_install))
                         }
                     }
-                    SkinDivider()
                 }
             }
         }

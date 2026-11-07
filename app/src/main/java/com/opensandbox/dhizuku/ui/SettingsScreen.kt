@@ -40,7 +40,7 @@ import com.opensandbox.dhizuku.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SettingsScreen(state: AppState) {
+internal fun SettingsScreen(state: AppState, bottomInset: androidx.compose.ui.unit.Dp) {
     val context = LocalContext.current
     var showLog by remember { mutableStateOf(false) }
 
@@ -48,7 +48,12 @@ internal fun SettingsScreen(state: AppState) {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, top = AppBarInset + 16.dp, end = 16.dp, bottom = 176.dp),
+            .padding(
+                start = Metrics.pageHorizontal,
+                top = 4.dp,
+                end = Metrics.pageHorizontal,
+                bottom = bottomInset + 16.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // ---------------- 外观：皮肤 / 字体 / 液态玻璃 三合一 ----------------

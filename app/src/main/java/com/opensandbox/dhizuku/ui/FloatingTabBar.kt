@@ -60,31 +60,15 @@ fun FloatingTabBar(
     Row(
         modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .height(64.dp)
+            .padding(horizontal = Metrics.pageHorizontal, vertical = Metrics.tabBarPadding)
+            .height(Metrics.tabBarHeight)
             .then(
                 if (glass) {
-                    Modifier
-                        .clip(shape)
-                        .background(surface.copy(alpha = LocalGlassAlpha.current + 0.06f), shape)
-                        .then(
-                            if (backdrop != null) {
-                                Modifier.drawBackdrop(
-                                    backdrop = backdrop,
-                                    shape = { shape },
-                                    effects = {
-                                        lens(16.dp.toPx(), 20.dp.toPx(), chromaticAberration = true)
-                                    },
-                                    highlight = { com.kyant.backdrop.highlight.Highlight.Default.copy(alpha = 0.3f) },
-                                    onDrawSurface = {},
-                                )
-                            } else Modifier
-                        )
-                        .border(1.dp, glassBorder, shape)
+                    Modifier.glassCapsule(backdrop = backdrop, capsule = true)
                 } else {
                     Modifier
                         .clip(shape)
-                        .background(surface.copy(alpha = 0.88f))
+                        .background(surface.copy(alpha = 0.88f), shape)
                         .border(1.dp, glassBorder, shape)
                 }
             ),

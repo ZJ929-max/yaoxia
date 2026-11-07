@@ -18,6 +18,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var state: AppState
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 边到边：背景渐变一直铺到状态栏 / 导航栏底下，顶栏的留白由 WindowInsets 精确算出
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
 
         FailureReporter.install(this)

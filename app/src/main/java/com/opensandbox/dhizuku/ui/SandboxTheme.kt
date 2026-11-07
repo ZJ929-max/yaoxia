@@ -66,10 +66,6 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
-/** 顶部渐变高度 & 内容起始位置（顶栏 + 状态栏）。 */
-internal val TopFadeHeight = 168.dp
-internal val AppBarInset = 132.dp
-
 /** 主题：只换配色，布局不变——所以"外观"和"玻璃"是两个独立开关。 */
 @Composable
 fun SandboxTheme(

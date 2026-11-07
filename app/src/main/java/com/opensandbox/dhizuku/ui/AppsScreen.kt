@@ -6,7 +6,6 @@
 package com.opensandbox.dhizuku.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,18 +15,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,168 +37,229 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.opensandbox.dhizuku.R
 
-/** 搜索框是浮层：列表从它下面滚过去，才能看到"透过去"的效果。 */
-private val HeaderHeight = 200.dp
-
-/** 顶栏 + 状态栏高度：内容从这里开始，再往上交给渐变遮罩淡出。 */
-
-
+/**
+ * 应用列表：一整段「设置列表」式卡片，长按进入批量选择。
+ * 顶部那条是状态条（数量 / 已选数量），不是第二个标题——页面标题只在顶栏出现一次。
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun AppsScreen(state: AppState) {
-    val query = state.appsQuery
-    var pendingQuery by remember { mutableStateOf(state.appsQuery) }
-    androidx.compose.runtime.LaunchedEffect(pendingQuery) {
-        kotlinx.coroutines.delay(150)
-        state.appsQuery = pendingQuery
-    }
+internal fun AppsScreen(state: AppState, bottomInset: Dp) {
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var menuFor by remember { mutableStateOf<String?>(null) }
-    val searchExpanded = state.searchExpanded
-    val searchFocus = remember { androidx.compose.ui.focus.FocusRequester() }
 
-    val visible = state.apps.filter {
-        query.isBlank() || it.label.contains(query, true) || it.packageName.contains(query, true)
+    val query = state.appsQuery
+    val visible =
+        remember(state.apps, query) {
+            if (query.isBlank()) {
+                state.apps
+            } else {
+                state.apps.filter {
+                    it.label.contains(query, true) || it.packageName.contains(query, true)
+                }
+            }
+        }
+
+    fun leaveSelection() {
+        selecting = false
+        selected = emptySet()
     }
 
-    Box(Modifier.fillMaxSize()) {
-        if (visible.isEmpty()) {
-            Text(
-                stringResource(R.string.apps_empty),
-                Modifier.padding(top = HeaderHeight + 16.dp, start = 16.dp),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        } else {
-            LazyColumn(
-                Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    top = if (searchExpanded) AppBarInset + HeaderHeight else AppBarInset,
-                    bottom = 176.dp,
-                ),
-            ) {
-                items(visible, key = { it.packageName }) { app ->
-                    val checked = app.packageName in selected
-                    Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = if (searchExpanded) AppBarInset else 0.dp),
-        ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        if (selecting) {
-                                            selected =
-                                                if (checked) selected - app.packageName
-                                                else selected + app.packageName
-                                        }
-                                    },
-                                    onLongClick = {
-                                        selecting = true
-                                        selected = selected + app.packageName
-                                    },
-                                )
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            if (selecting) {
-                                SkinCheckbox(checked = checked)
-                                Spacer(Modifier.width(8.dp))
-                            }
-                            Column(Modifier.weight(1f)) {
-                                SkinText(app.label, fontWeight = FontWeight.Medium)
-                                SkinText(app.packageName, style = MaterialTheme.typography.bodySmall)
-                            }
-                            if (!selecting) {
-                                IconButton(onClick = { state.toggleUninstallBlock(app) }) {
-                                    Icon(
-                                        Icons.Filled.Lock,
-                                        contentDescription = stringResource(R.string.apps_uninstall_block),
-                                        tint = if (app.uninstallBlocked) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.outline,
-                                    )
-                                }
-                                SkinSwitch(
-                                    checked = app.frozen,
-                                    enabled = app.packageName !in state.busyPackages,
-                                    onCheckedChange = { target -> state.setFrozen(app, target) },
-                                )
-                                Box {
-                                    IconButton(onClick = { menuFor = app.packageName }) {
-                                        Icon(Icons.Filled.MoreVert, contentDescription = null)
-                                    }
-                                    DropdownMenu(
-                                        expanded = menuFor == app.packageName,
-                                        onDismissRequest = { menuFor = null },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.apps_menu_install)) },
-                                            onClick = {
-                                                menuFor = null
-                                                state.installIntoProfile(app.packageName)
-                                            },
-                                        )
-                                    }
-                                }
-                            }
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding =
+            PaddingValues(
+                start = Metrics.pageHorizontal,
+                top = 4.dp,
+                end = Metrics.pageHorizontal,
+                bottom = bottomInset + 16.dp,
+            ),
+    ) {
+        item(key = "status-bar") {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        if (selecting) {
+                            stringResource(R.string.apps_selected, selected.size)
+                        } else {
+                            stringResource(R.string.apps_count, visible.size)
+                        },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    if (selecting) {
+                        TextButton(onClick = ::leaveSelection) {
+                            Text(stringResource(R.string.apps_cancel_select))
                         }
-                        SkinDivider()
+                    } else if (visible.isNotEmpty()) {
+                        TextButton(onClick = { selecting = true }) {
+                            Text(stringResource(R.string.apps_batch))
+                        }
+                    }
+                }
+                if (selecting) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        val enabled = selected.isNotEmpty() && state.busyPackages.isEmpty()
+                        TextButton(
+                            enabled = enabled,
+                            onClick = {
+                                state.freezeBatch(selected, true)
+                                leaveSelection()
+                            },
+                        ) { Text(stringResource(R.string.apps_freeze_selected)) }
+                        TextButton(
+                            enabled = enabled,
+                            onClick = {
+                                state.freezeBatch(selected, false)
+                                leaveSelection()
+                            },
+                        ) { Text(stringResource(R.string.apps_unfreeze_selected)) }
+                        TextButton(
+                            enabled = enabled,
+                            onClick = {
+                                state.installBatch(selected)
+                                leaveSelection()
+                            },
+                        ) { Text(stringResource(R.string.apps_install_selected)) }
                     }
                 }
             }
         }
 
+        if (visible.isEmpty()) {
+            item(key = "empty") {
+                Text(
+                    stringResource(R.string.apps_empty),
+                    Modifier.padding(horizontal = 4.dp, vertical = 24.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            itemsIndexed(visible, key = { _, app -> app.packageName }) { index, app ->
+                val checked = app.packageName in selected
+                AppRow(
+                    app = app,
+                    slot = rowSlot(index, visible.size),
+                    selecting = selecting,
+                    checked = checked,
+                    busy = app.packageName in state.busyPackages,
+                    menuOpen = menuFor == app.packageName,
+                    onToggleSelect = {
+                        selected = if (checked) selected - app.packageName else selected + app.packageName
+                    },
+                    onLongPress = {
+                        selecting = true
+                        selected = selected + app.packageName
+                    },
+                    onToggleFreeze = { target -> state.setFrozen(app, target) },
+                    onToggleLock = { state.toggleUninstallBlock(app) },
+                    onOpenMenu = { menuFor = app.packageName },
+                    onDismissMenu = { menuFor = null },
+                    onInstall = {
+                        menuFor = null
+                        state.installIntoProfile(app.packageName)
+                    },
+                )
+            }
+        }
+    }
+}
 
-        // 浮层头部：折叠成右上角搜索按钮；点击展开并自动聚焦
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = if (searchExpanded) AppBarInset else 0.dp),
-        ) {
-            if (searchExpanded) {
-                GlassCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        IconButton(onClick = {
-                            state.appsQuery = ""
-                            state.searchExpanded = false
-                        }) {
-                            Icon(
-                                Icons.Filled.Close,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun AppRow(
+    app: AppUi,
+    slot: RowSlot,
+    selecting: Boolean,
+    checked: Boolean,
+    busy: Boolean,
+    menuOpen: Boolean,
+    onToggleSelect: () -> Unit,
+    onLongPress: () -> Unit,
+    onToggleFreeze: (Boolean) -> Unit,
+    onToggleLock: () -> Unit,
+    onOpenMenu: () -> Unit,
+    onDismissMenu: () -> Unit,
+    onInstall: () -> Unit,
+) {
+    val cs = MaterialTheme.colorScheme
+    val tint =
+        when {
+            selecting && checked -> cs.primary.copy(alpha = 0.14f)
+            app.frozen -> cs.primary.copy(alpha = 0.06f)
+            else -> Color.Transparent
+        }
+
+    ListRow(
+        slot = slot,
+        tint = tint,
+        modifier =
+            Modifier.combinedClickable(
+                onClick = {
+                    if (selecting) {
+                        onToggleSelect()
                     }
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { value ->
-                            // 防抖：输入停顿 150ms 后再过滤，避免长列表每键全量扫描
-                            pendingQuery = value
-                        },
-                        singleLine = true,
-                        placeholder = { Text(stringResource(R.string.apps_search)) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(searchFocus),
+                },
+                onLongClick = onLongPress,
+            ),
+    ) {
+        if (selecting) {
+            SkinCheckbox(checked = checked, onClick = onToggleSelect)
+            Spacer(Modifier.width(10.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text(
+                app.label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                app.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                color = cs.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (!selecting) {
+            IconButton(onClick = onToggleLock) {
+                Icon(
+                    Icons.Filled.Lock,
+                    contentDescription = stringResource(R.string.apps_uninstall_block),
+                    tint = if (app.uninstallBlocked) cs.primary else cs.outline,
+                )
+            }
+            SkinSwitch(
+                checked = app.frozen,
+                enabled = !busy,
+                onCheckedChange = onToggleFreeze,
+            )
+            Box {
+                IconButton(onClick = onOpenMenu) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = null)
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = onDismissMenu) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.apps_menu_install)) },
+                        onClick = onInstall,
                     )
-                    androidx.compose.runtime.LaunchedEffect(Unit) {
-                        searchFocus.requestFocus()
-                    }
                 }
             }
-            Spacer(Modifier.height(4.dp))
         }
     }
 }
