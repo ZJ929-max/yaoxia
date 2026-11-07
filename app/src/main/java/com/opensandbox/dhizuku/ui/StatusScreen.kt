@@ -28,8 +28,12 @@ internal fun StatusScreen(state: AppState, topInset: androidx.compose.ui.unit.Dp
         SkinLinearProgress(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
     }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    ReportScrollProgress(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+
     LazyColumn(
-        Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = Metrics.pageHorizontal,
             top = topInset + 4.dp,

@@ -100,8 +100,12 @@ internal fun ProfileScreen(state: AppState, topInset: androidx.compose.ui.unit.D
                 }
             }
 
+        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+        ReportScrollProgress(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+
         LazyColumn(
-            Modifier.fillMaxSize(),
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
             contentPadding =
                 PaddingValues(
                     start = Metrics.pageHorizontal,

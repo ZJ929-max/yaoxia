@@ -73,8 +73,12 @@ internal fun AppsScreen(state: AppState, topInset: Dp, bottomInset: Dp) {
         selected = emptySet()
     }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    ReportScrollProgress(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+
     LazyColumn(
-        Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
         contentPadding =
             PaddingValues(
                 start = Metrics.pageHorizontal,

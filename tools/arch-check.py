@@ -40,7 +40,9 @@ for f in SRC:
         if me and dep in LAYERS and dep != me and dep not in ALLOWED[me]:
             hard.append(f"{rel}: 分层越界 {me} → {dep}")
 
-    for m in re.finditer(r"^(?:internal |private )?(?:val|fun|class|object) (\w+)", text, re.M):
+    # 名字带上接收者：`fun Modifier.foo` 和 `fun Modifier.bar` 是两个不同的声明，
+    # 早期只取 \w+ 会都记成 "Modifier"，产生假的重名告警
+    for m in re.finditer(r"^(?:internal |private )?(?:val|fun|class|object) ((?:\w+\.)*\w+)", text, re.M):
         decl[m.group(1)].append(str(rel))
 
     for kw in ("TODO(", "FIXME(", "HACK("):

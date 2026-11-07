@@ -43,11 +43,13 @@ import com.opensandbox.dhizuku.R
 internal fun SettingsScreen(state: AppState, topInset: androidx.compose.ui.unit.Dp, bottomInset: androidx.compose.ui.unit.Dp) {
     val context = LocalContext.current
     var showLog by remember { mutableStateOf(false) }
+    val scroll = rememberScrollState()
+    ReportScrollProgress(0, scroll.value)
 
     Column(
         Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(
                 start = Metrics.pageHorizontal,
                 top = topInset + 4.dp,
