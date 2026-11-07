@@ -23,7 +23,7 @@ import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
 @Composable
-internal fun StatusScreen(state: AppState, bottomInset: androidx.compose.ui.unit.Dp) {
+internal fun StatusScreen(state: AppState, topInset: androidx.compose.ui.unit.Dp, bottomInset: androidx.compose.ui.unit.Dp) {
     if (state.busy) {
         SkinLinearProgress(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
     }
@@ -32,7 +32,7 @@ internal fun StatusScreen(state: AppState, bottomInset: androidx.compose.ui.unit
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = Metrics.pageHorizontal,
-            top = 4.dp,
+            top = topInset + 4.dp,
             end = Metrics.pageHorizontal,
             bottom = bottomInset + 16.dp,
         ),

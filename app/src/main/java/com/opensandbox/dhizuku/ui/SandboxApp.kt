@@ -50,6 +50,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -124,33 +126,44 @@ fun SandboxApp(state: AppState, initialTab: Int = 0) {
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomInset = navBarInset + Metrics.tabBarSpace
 
+    // 顶栏高度是量出来的：搜索框展开 / 收起都会变，内容跟着让位，没有任何写死的高度
+    var headerHeight by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+
     // 内容层：给悬浮导航胶囊做折射源，让它能「透」出下面滚动的列表
     val contentBackdrop = rememberLayerBackdrop()
 
     SandboxSurface {
         Box(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().layerBackdrop(contentBackdrop)) {
-                AppHeader(
-                    title = titles[tab],
-                    topInset = statusBarInset,
-                    searchable = tab == 1,
-                    searchExpanded = state.searchExpanded,
-                    onToggleSearch = {
-                        state.searchExpanded = !state.searchExpanded
-                        if (!state.searchExpanded) state.appsQuery = ""
-                    },
-                    query = state.appsQuery,
-                    onQueryChange = { state.appsQuery = it },
-                )
-                Box(Modifier.fillMaxWidth().weight(1f)) {
-                    when (tab) {
-                        0 -> StatusScreen(state, bottomInset)
-                        1 -> AppsScreen(state, bottomInset)
-                        2 -> ProfileScreen(state, bottomInset)
-                        else -> SettingsScreen(state, bottomInset)
-                    }
+            // 内容铺满整屏；滚到标题区时由 fadeTopEdge 渐隐化开，而不是被一条硬边切掉
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .layerBackdrop(contentBackdrop)
+                    .fadeTopEdge(headerHeight + Metrics.fadeRamp),
+            ) {
+                val topInset = headerHeight + Metrics.fadeRamp
+                when (tab) {
+                    0 -> StatusScreen(state, topInset, bottomInset)
+                    1 -> AppsScreen(state, topInset, bottomInset)
+                    2 -> ProfileScreen(state, topInset, bottomInset)
+                    else -> SettingsScreen(state, topInset, bottomInset)
                 }
             }
+
+            AppHeader(
+                title = titles[tab],
+                topInset = statusBarInset,
+                searchable = tab == 1,
+                searchExpanded = state.searchExpanded,
+                onToggleSearch = {
+                    state.searchExpanded = !state.searchExpanded
+                    if (!state.searchExpanded) state.appsQuery = ""
+                },
+                query = state.appsQuery,
+                onQueryChange = { state.appsQuery = it },
+                modifier = Modifier.onSizeChanged { headerHeight = with(density) { it.height.toDp() } },
+            )
 
             FloatingTabBar(
                 items = icons.zip(titles),

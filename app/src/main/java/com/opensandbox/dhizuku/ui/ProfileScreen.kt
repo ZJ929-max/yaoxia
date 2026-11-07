@@ -23,8 +23,8 @@ import com.opensandbox.dhizuku.BuildConfig
 import com.opensandbox.dhizuku.R
 
 @Composable
-internal fun ProfileScreen(state: AppState, bottomInset: androidx.compose.ui.unit.Dp) {
-    Column(Modifier.fillMaxSize()) {
+internal fun ProfileScreen(state: AppState, topInset: androidx.compose.ui.unit.Dp, bottomInset: androidx.compose.ui.unit.Dp) {
+    Column(Modifier.fillMaxSize().padding(top = topInset)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleMedium)
             Text(

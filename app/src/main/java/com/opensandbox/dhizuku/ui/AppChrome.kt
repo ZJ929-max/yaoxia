@@ -76,8 +76,9 @@ internal fun AppHeader(
     onToggleSearch: () -> Unit,
     query: String,
     onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(Modifier.fillMaxWidth().padding(top = topInset)) {
+    Column(modifier.fillMaxWidth().padding(top = topInset)) {
         Row(
             Modifier
                 .fillMaxWidth()

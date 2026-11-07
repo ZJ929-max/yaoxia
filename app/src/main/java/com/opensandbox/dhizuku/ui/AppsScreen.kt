@@ -51,7 +51,7 @@ import com.opensandbox.dhizuku.R
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun AppsScreen(state: AppState, bottomInset: Dp) {
+internal fun AppsScreen(state: AppState, topInset: Dp, bottomInset: Dp) {
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var menuFor by remember { mutableStateOf<String?>(null) }
@@ -78,7 +78,7 @@ internal fun AppsScreen(state: AppState, bottomInset: Dp) {
         contentPadding =
             PaddingValues(
                 start = Metrics.pageHorizontal,
-                top = 4.dp,
+                top = topInset + 4.dp,
                 end = Metrics.pageHorizontal,
                 bottom = bottomInset + 16.dp,
             ),

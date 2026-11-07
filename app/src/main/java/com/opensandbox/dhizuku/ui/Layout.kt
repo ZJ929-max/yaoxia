@@ -19,6 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
@@ -49,6 +54,9 @@ internal object Metrics {
 
     /** 内容底部需要让出的高度：胶囊本体 + 上下留白。 */
     val tabBarSpace: Dp = tabBarHeight + tabBarPadding * 2
+
+    /** 顶栏下方那一段「渐隐带」的高度：内容滚到这里正好化开。 */
+    val fadeRamp: Dp = 20.dp
 
     /** 列表行内边距。 */
     val rowHorizontal: Dp = 14.dp
@@ -124,3 +132,34 @@ internal fun ListRow(
         }
     }
 }
+
+/**
+ * 顶部渐隐：内容滚到标题区时逐渐化开，而不是被一条硬边切掉。
+ *
+ * 实现是「透明度遮罩」而不是「盖一层底色」——盖一层底色在极光背景下会变成一条死板的色带，
+ * 那正是之前「挡住一切」的观感。这里只把节点自己的绘制结果按垂直渐变扣掉 alpha。
+ */
+internal fun Modifier.fadeTopEdge(fade: Dp, hold: Float = 0.84f): Modifier =
+    drawWithContent {
+        val fadePx = fade.toPx()
+        if (fadePx <= 0f) {
+            drawContent()
+            return@drawWithContent
+        }
+        val canvas = drawContext.canvas
+        canvas.saveLayer(Rect(0f, 0f, size.width, size.height), Paint())
+        drawContent()
+        drawRect(
+            brush = Brush.verticalGradient(
+                // hold 之前完全透明：标题区干净，正文不会和标题叠字；
+                // 只在最后一段化开，正好接上列表的第一行
+                0f to Color.Transparent,
+                hold to Color.Transparent,
+                1f to Color.Black,
+                startY = 0f,
+                endY = fadePx,
+            ),
+            blendMode = BlendMode.DstIn,
+        )
+        canvas.restore()
+    }

@@ -40,7 +40,7 @@ import com.opensandbox.dhizuku.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SettingsScreen(state: AppState, bottomInset: androidx.compose.ui.unit.Dp) {
+internal fun SettingsScreen(state: AppState, topInset: androidx.compose.ui.unit.Dp, bottomInset: androidx.compose.ui.unit.Dp) {
     val context = LocalContext.current
     var showLog by remember { mutableStateOf(false) }
 
@@ -50,7 +50,7 @@ internal fun SettingsScreen(state: AppState, bottomInset: androidx.compose.ui.un
             .verticalScroll(rememberScrollState())
             .padding(
                 start = Metrics.pageHorizontal,
-                top = 4.dp,
+                top = topInset + 4.dp,
                 end = Metrics.pageHorizontal,
                 bottom = bottomInset + 16.dp,
             ),
